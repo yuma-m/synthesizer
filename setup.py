@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-version = '0.1.0'
+version = '0.1.1'
 
 try:
     import pypandoc
@@ -15,7 +15,8 @@ setup(
     classifiers=[
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-        "Operating System :: OS Independent",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: POSIX :: Linux",
         "Topic :: Multimedia :: Sound/Audio :: MIDI",
         "Topic :: Multimedia :: Sound/Audio :: Sound Synthesis",
         ],
@@ -29,4 +30,10 @@ setup(
     zip_safe=True,
     long_description=read_md('README.md'),
     test_suite='test',
+    install_requires=[
+        'enum34>=1.1.6',
+        "numpy>=1.13.3",
+        'PyAudio>=0.2.11',
+        'scipy>=0.19.1',
+    ],
 )
