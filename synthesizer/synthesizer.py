@@ -85,6 +85,23 @@ class Synthesizer(object):
         :param float frequency: frequency of wave
         :param float length: length of wave (seconds)
         :rtype: numpy.array
+        :return: normalized wave
         """
         phases = np.cumsum(2.0 * np.pi * frequency / self._rate * np.ones(int(self._rate * float(length))))
         return self._generate_wave(phases)
+
+    def generate_chord(self, freqs, length):
+        u""" generate wave consists of multiple frequencies
+
+        :param list[float] freqs: list of frequencies
+        :param length: legnth of wave (seconds)
+        :rtype: numpy.array
+        :return: normalized wave
+        """
+        if not freqs or not isinstance(freqs, list):
+            raise ValueError("freqs must be a list of float")
+        wave = self.generate_constant_wave(freqs[0], length)
+        for freq in freqs[1:]:
+            wave += self.generate_constant_wave(freq, length)
+        wave /= float(len(freqs))
+        return wave

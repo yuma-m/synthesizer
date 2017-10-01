@@ -1,3 +1,6 @@
+## 0.1.2
+- Add generate_chord method.
+
 ## 0.1.1
 - Add Synthesizer and Player classes.
 - Generate and play constant frequency wave.
