@@ -14,18 +14,47 @@ class Player(object):
         self._channels = channels
         self._rate = rate
 
-    def open_stream(self):
-        default_device = self._pyaudio.get_default_output_device_info()
+    def enumerate_device(self):
+        for n in range(self._pyaudio.get_device_count()):
+            device = self._pyaudio.get_device_info_by_index(n)
+            print("index {index:02d}, name: {name}, rate: {rate}".format(
+                index=n, name=device["name"], rate=device["defaultSampleRate"]))
+
+    def open_stream(self, device_name=None, device_index=-1):
+        u""" open audio output stream
+
+        if neither device_name nor device_index is specified,
+        default output device will be opened.
+
+        :param str device_name: part of device name (ex: hw:0,0)
+        :param int device_index: index of device
+        """
+        if device_name:
+            for n in range(self._pyaudio.get_device_count()):
+                dev = self._pyaudio.get_device_info_by_index(n)
+                if dev["name"].find(device_name) >= 0:
+                    device = dev
+                    break
+            else:
+                raise RuntimeError("audio device {} not found".format(device_name))
+        elif device_index >= 0:
+            device = self._pyaudio.get_device_info_by_index(device_index)
+        else:
+            device = self._pyaudio.get_default_output_device_info()
 
         self._stream = self._pyaudio.open(
             channels=self._channels,
             format=pyaudio.paInt16,
             rate=self._rate,
-            output_device_index=default_device["index"],
+            output_device_index=device["index"],
             output=True,
         )
 
     def play_wave(self, wave):
+        u""" play normalized wave
+
+        :param numpy.array wave: normalized wave
+        """
         if not self._stream:
             raise RuntimeError("audio stream is not opened, please call open_stream() first.")
         wave = (wave * float(2 ** 15 - 1)).astype(np.int16).tolist()
