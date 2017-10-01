@@ -29,7 +29,7 @@ setup(
     include_package_data=True,
     zip_safe=True,
     long_description=read_md('README.md'),
-    test_suite='test',
+    test_suite='nose.collector',
     install_requires=[
         'enum34>=1.1.6',
         "numpy>=1.13.3",

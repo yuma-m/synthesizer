@@ -84,6 +84,7 @@ class Synthesizer(object):
 
         :param float frequency: frequency of wave
         :param float length: length of wave (seconds)
+        :rtype: numpy.array
         """
         phases = np.cumsum(2.0 * np.pi * frequency / self._rate * np.ones(int(self._rate * float(length))))
         return self._generate_wave(phases)
