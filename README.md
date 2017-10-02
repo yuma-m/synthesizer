@@ -35,14 +35,10 @@ $ pip install synthesizer
 
 ```python
 >>> player.enumerate_device()
-index: 00, name: "Loopback: PCM (hw:0,0)", rate: 44100.0
-index: 01, name: "Loopback: PCM (hw:0,1)", rate: 44100.0
-index: 02, name: "HDA Intel PCH: ALC892 Analog (hw:1,0)", rate: 44100.0
-index: 03, name: "HDA Intel PCH: ALC892 Alt Analog (hw:1,2)", rate: 44100.0
-index: 04, name: "sysdefault", rate: 48000
-index: 05, name: "front", rate: 44100
-index: 06, name: "default", rate: 44100
->>> player.open_stream(device_name="Loopback: PCM (hw:0,0)")
+# index: 00, name: "Built-in Microphone", rate: 44100
+# index: 01, name: "Built-in Output", rate: 44100
+# index: 02, name: "UA-25EX 44.1kHz", rate: 44100
+>>> player.open_stream(device_name="UA-25EX")
 ```
 
 ### Write wav file
