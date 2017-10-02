@@ -17,8 +17,8 @@ class Player(object):
     def enumerate_device(self):
         for n in range(self._pyaudio.get_device_count()):
             device = self._pyaudio.get_device_info_by_index(n)
-            print("index {index:02d}, name: {name}, rate: {rate}".format(
-                index=n, name=device["name"], rate=device["defaultSampleRate"]))
+            print('index: {index:02d}, name: "{name}", rate: {rate:5d}'.format(
+                index=n, name=device["name"], rate=int(device["defaultSampleRate"])))
 
     def open_stream(self, device_name=None, device_index=-1):
         u""" open audio output stream

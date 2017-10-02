@@ -1,6 +1,7 @@
 ## 0.1.3
 
 - Specify audio output device.
+- Add Writer class.
 
 ## 0.1.2
 

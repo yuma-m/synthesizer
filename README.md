@@ -35,14 +35,25 @@ $ pip install synthesizer
 
 ```python
 >>> player.enumerate_device()
-index 00, name: Loopback: PCM (hw:0,0), rate: 44100.0
-index 01, name: Loopback: PCM (hw:0,1), rate: 44100.0
-index 02, name: HDA Intel PCH: ALC892 Analog (hw:1,0), rate: 44100.0
-index 03, name: HDA Intel PCH: ALC892 Alt Analog (hw:1,2), rate: 44100.0
-index 04, name: sysdefault, rate: 48000.0
-index 05, name: front, rate: 44100.0
-index 06, name: default, rate: 44100.0
+index: 00, name: "Loopback: PCM (hw:0,0)", rate: 44100.0
+index: 01, name: "Loopback: PCM (hw:0,1)", rate: 44100.0
+index: 02, name: "HDA Intel PCH: ALC892 Analog (hw:1,0)", rate: 44100.0
+index: 03, name: "HDA Intel PCH: ALC892 Alt Analog (hw:1,2)", rate: 44100.0
+index: 04, name: "sysdefault", rate: 48000
+index: 05, name: "front", rate: 44100
+index: 06, name: "default", rate: 44100
 >>> player.open_stream(device_name="Loopback: PCM (hw:0,0)")
+```
+
+### Write wav file
+
+```python
+>>> from synthesizer import Writer
+>>> writer = Writer()
+
+>>> chord = [261.626,  329.628, 391.996]
+>>> wave = synthesizer.generate_chord(chord, 3.0)
+>>> writer.write_wave("path/to/your.wav", wave)
 ```
 
 ## Supported OS
