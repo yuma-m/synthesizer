@@ -31,6 +31,27 @@ $ pip install synthesizer
 >>> player.play_wave(synthesizer.generate_chord(chord, 3.0))
 ```
 
+### Specify audio device
+
+```python
+>>> player.enumerate_device()
+# index: 00, name: "Built-in Microphone", rate: 44100
+# index: 01, name: "Built-in Output", rate: 44100
+# index: 02, name: "UA-25EX 44.1kHz", rate: 44100
+>>> player.open_stream(device_name="UA-25EX")
+```
+
+### Write wav file
+
+```python
+>>> from synthesizer import Writer
+>>> writer = Writer()
+
+>>> chord = [261.626,  329.628, 391.996]
+>>> wave = synthesizer.generate_chord(chord, 3.0)
+>>> writer.write_wave("path/to/your.wav", wave)
+```
+
 ## Supported OS
 
 - macOS Sierra
