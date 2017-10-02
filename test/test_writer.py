@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 from nose.tools import ok_
 
 from synthesizer import Synthesizer, Waveform, Writer
+
+
+def teardown_write_wave():
+    os.remove("./test_wave.wav")
 
 
 def test_write_wave():
@@ -15,6 +21,13 @@ def test_write_wave():
     ok_("write_wave() succeeded.")
 
 
+test_write_wave.teardown = teardown_write_wave
+
+
+def teardown_write_waves():
+    os.remove("./test_waves.wav")
+
+
 def test_write_waves():
     writer = Writer()
 
@@ -24,3 +37,6 @@ def test_write_waves():
 
     writer.write_waves("./test_waves.wav", wave1, wave2)
     ok_("write_waves() succeeded.")
+
+
+test_write_waves.teardown = teardown_write_waves
