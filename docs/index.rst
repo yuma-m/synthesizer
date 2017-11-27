@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to synthesizer's documentation!
-===================================
+=======================================
 
 .. toctree::
    :maxdepth: 4
