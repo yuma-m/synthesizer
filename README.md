@@ -9,6 +9,22 @@
 $ pip install synthesizer
 ```
 
+### Install dependencies
+
+#### Ubuntu
+
+```bash
+$ apt install portaudio19-dev
+$ pip install PyAudio
+```
+
+### macOS
+
+```bash
+$ brew install port
+$ pip install PyAudio
+```
+
 ## Basic usage
 
 ### Play 440Hz sine wave

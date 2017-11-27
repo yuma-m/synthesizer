@@ -5,7 +5,7 @@ Submodules
 ----------
 
 synthesizer.player module
------------------------
+-------------------------
 
 .. automodule:: synthesizer.player
     :members:
@@ -13,7 +13,7 @@ synthesizer.player module
     :show-inheritance:
 
 synthesizer.synthesizer module
---------------------
+------------------------------
 
 .. automodule:: synthesizer.synthesizer
     :members:
@@ -21,7 +21,7 @@ synthesizer.synthesizer module
     :show-inheritance:
 
 synthesizer.writer module
----------------------
+-------------------------
 
 .. automodule:: synthesizer.writer
     :members:

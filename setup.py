@@ -33,7 +33,8 @@ setup(
     install_requires=[
         'enum34>=1.1.6',
         "numpy>=1.13.3",
-        'PyAudio>=0.2.11',
+        # TODO: commented out to build document on ReadTheDocs
+        # 'PyAudio>=0.2.11',
         'scipy>=0.19.1',
     ],
 )
