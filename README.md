@@ -15,14 +15,14 @@ $ pip install synthesizer
 
 ```bash
 $ apt install portaudio19-dev
-$ pip install PyAudio
+$ pip install pyaudio
 ```
 
 ### macOS
 
 ```bash
-$ brew install port
-$ pip install PyAudio
+$ brew install portaudio
+$ pip install pyaudio
 ```
 
 ## Basic usage
