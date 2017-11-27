@@ -2,19 +2,25 @@
 
 import struct
 
-import pyaudio
 import numpy as np
 
 
 class Player(object):
 
     def __init__(self, channels=2, rate=44100):
-        self._pyaudio = pyaudio.PyAudio()
+        try:
+            import pyaudio
+            self._pyaudio = pyaudio.PyAudio()
+            self._format = pyaudio.paInt16
+        except ImportError:
+            self._pyaudio = None
         self._stream = None
         self._channels = channels
         self._rate = rate
 
     def enumerate_device(self):
+        if not self._pyaudio:
+            raise ImportError("Failed to import pyaudio, please install pyaudio")
         for n in range(self._pyaudio.get_device_count()):
             device = self._pyaudio.get_device_info_by_index(n)
             print('index: {index:02d}, name: "{name}", rate: {rate:5d}'.format(
@@ -29,6 +35,8 @@ class Player(object):
         :param str device_name: part of device name (ex: hw:0,0)
         :param int device_index: index of device
         """
+        if not self._pyaudio:
+            raise ImportError("Failed to import pyaudio, please install pyaudio")
         if device_name:
             for n in range(self._pyaudio.get_device_count()):
                 dev = self._pyaudio.get_device_info_by_index(n)
@@ -44,7 +52,7 @@ class Player(object):
 
         self._stream = self._pyaudio.open(
             channels=self._channels,
-            format=pyaudio.paInt16,
+            format=self._format,
             rate=self._rate,
             output_device_index=device["index"],
             output=True,

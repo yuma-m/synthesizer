@@ -1,4 +1,5 @@
-# Python synthesizer [![Build Status](https://travis-ci.org/yuma-m/synthesizer.svg?branch=master)](https://travis-ci.org/yuma-m/synthesizer)
+# Python synthesizer [![Build Status](https://travis-ci.org/yuma-m/synthesizer.svg?branch=master)](https://travis-ci.org/yuma-m/synthesizer) [![Documentation Status](https://readthedocs.org/projects/synthesizer/badge/?version=latest)](http://synthesizer.readthedocs.io/en/latest/?badge=latest)
+
 
 - Virtual analog synthesizer. 
 
@@ -6,6 +7,22 @@
 
 ```bash
 $ pip install synthesizer
+```
+
+### Install dependencies
+
+#### Ubuntu
+
+```bash
+$ apt install portaudio19-dev
+$ pip install pyaudio
+```
+
+### macOS
+
+```bash
+$ brew install portaudio
+$ pip install pyaudio
 ```
 
 ## Basic usage
@@ -74,3 +91,4 @@ $ pip install synthesizer
 
 - PyPI: https://pypi.python.org/pypi/synthesizer
 - GitHub: https://github.com/yuma-m/synthesizer
+- Document: https://synthesizer.readthedocs.io
