@@ -5,7 +5,7 @@ import numpy as np
 
 class Player(object):
 
-    def __init__(self, channels=1, rate=44100):
+    def __init__(self, rate=44100):
         try:
             import pyaudio
             self._pyaudio = pyaudio.PyAudio()
@@ -13,7 +13,8 @@ class Player(object):
         except ImportError:
             self._pyaudio = None
         self._stream = None
-        self._channels = channels
+        # TODO: support stereo channels
+        self._channels = 1
         self._rate = rate
 
     def enumerate_device(self):
