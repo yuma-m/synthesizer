@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import struct
-
 import numpy as np
 
 
 class Player(object):
 
-    def __init__(self, channels=2, rate=44100):
+    def __init__(self, rate=44100):
         try:
             import pyaudio
             self._pyaudio = pyaudio.PyAudio()
@@ -15,7 +13,8 @@ class Player(object):
         except ImportError:
             self._pyaudio = None
         self._stream = None
-        self._channels = channels
+        # TODO: support stereo channels
+        self._channels = 1
         self._rate = rate
 
     def enumerate_device(self):
@@ -65,6 +64,5 @@ class Player(object):
         """
         if not self._stream:
             raise RuntimeError("audio stream is not opened, please call open_stream() first.")
-        wave = (wave * float(2 ** 15 - 1)).astype(np.int16).tolist()
-        data = struct.pack("h" * len(wave), *wave)
-        self._stream.write(data)
+        wave = (wave * float(2 ** 15 - 1)).astype(np.int16).tobytes()
+        self._stream.write(wave)

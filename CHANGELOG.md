@@ -1,3 +1,7 @@
+## 0.1.4
+
+- Fix channels of Player class from 2 to 1 to play proper sound.
+
 ## 0.1.3
 
 - Specify audio output device.
