@@ -9,6 +9,7 @@ class Waveform(Enum):
     sine = "sine"
     sawtooth = "sawtooth"
     square = "square"
+    triangle = "triangle"
 
 
 class Oscillator(object):
@@ -36,12 +37,16 @@ class Oscillator(object):
             return scipy.signal.sawtooth
         elif self._waveform is Waveform.square:
             return scipy.signal.square
+        elif self._waveform is Waveform.triangle:
+            return self.gen_triang
         raise TypeError("unknown waveform: {}".format(self._waveform))
 
     def generate_wave(self, phases):
         phases = np.copy(phases) * self._freq_transpose
         return self._volume * self._wave_func(phases)
-
+    
+    def gen_triang(self,t,width=0.5):
+	    return scipy.signal.sawtooth(t,width)
 
 class Synthesizer(object):
     u""" Virtual analog synthesizer object
