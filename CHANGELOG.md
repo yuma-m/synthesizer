@@ -1,3 +1,8 @@
+## 0.1.5
+
+- Support triangle wave.
+    - Contributor: @AntiMatterAMA
+
 ## 0.1.4
 
 - Fix channels of Player class from 2 to 1 to play proper sound.

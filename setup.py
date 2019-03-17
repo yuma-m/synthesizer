@@ -1,12 +1,5 @@
 from setuptools import setup, find_packages
-version = '0.1.4'
-
-try:
-    import pypandoc
-    read_md = lambda f: pypandoc.convert(f, 'rst')
-except ImportError:
-    print("warning: pypandoc module not found, could not convert Markdown to RST")
-    read_md = lambda f: open(f, 'r').read()
+version = '0.1.5'
 
 setup(
     name='synthesizer',
@@ -28,7 +21,8 @@ setup(
     packages=find_packages(exclude=['test']),
     include_package_data=True,
     zip_safe=True,
-    long_description=read_md('README.md'),
+    long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
     test_suite='nose.collector',
     install_requires=[
         'enum34>=1.1.6',

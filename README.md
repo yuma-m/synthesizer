@@ -71,7 +71,7 @@ $ pip install pyaudio
 
 ## Supported OS
 
-- macOS Sierra
+- macOS 10.12 and above
 - Ubuntu 16.04
 
 ## Supported versions
