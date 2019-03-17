@@ -20,6 +20,11 @@ def main():
     player.play_wave(synthesizer.generate_constant_wave(440.0, 3.0))
     time.sleep(0.5)
 
+    print("play triangle wave")
+    synthesizer = Synthesizer(osc1_waveform=Waveform.triangle, osc1_volume=0.8, use_osc2=False)
+    player.play_wave(synthesizer.generate_constant_wave(440.0, 3.0))
+    time.sleep(0.5)
+
     print("play synthesized wave 1")
     synthesizer = Synthesizer(
         osc1_waveform=Waveform.sawtooth, osc1_volume=1.0,
