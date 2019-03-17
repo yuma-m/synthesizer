@@ -45,8 +45,10 @@ class Oscillator(object):
         phases = np.copy(phases) * self._freq_transpose
         return self._volume * self._wave_func(phases)
     
-    def gen_triang(self,t,width=0.5):
-	    return scipy.signal.sawtooth(t,width)
+    @staticmethod
+    def gen_triang(t, width=0.5):
+        return scipy.signal.sawtooth(t, width)
+
 
 class Synthesizer(object):
     u""" Virtual analog synthesizer object
