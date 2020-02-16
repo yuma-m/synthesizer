@@ -4,6 +4,8 @@ import numpy as np
 import scipy.signal
 from enum import Enum
 
+from .frequency import frequency_from_scale
+
 
 class Waveform(Enum):
     sine = "sine"
@@ -89,18 +91,20 @@ class Synthesizer(object):
     def generate_constant_wave(self, frequency, length):
         u""" generate wave with constant frequency
 
-        :param float frequency: frequency of wave
+        :param (float|str) frequency: frequency or scale of wave
         :param float length: length of wave (seconds)
         :rtype: numpy.array
         :return: normalized wave
         """
+        if isinstance(frequency, str):
+            frequency = frequency_from_scale(frequency)
         phases = np.cumsum(2.0 * np.pi * frequency / self._rate * np.ones(int(self._rate * float(length))))
         return self._generate_wave(phases)
 
     def generate_chord(self, freqs, length):
         u""" generate wave consists of multiple frequencies
 
-        :param list[float] freqs: list of frequencies
+        :param list[float] freqs: list of frequencies or scales
         :param length: legnth of wave (seconds)
         :rtype: numpy.array
         :return: normalized wave

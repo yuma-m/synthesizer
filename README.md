@@ -44,7 +44,11 @@ $ pip install pyaudio
 
 ```python
 # Play C major
->>> chord = [261.626,  329.628, 391.996]
+>>> chord = ["C3", "E3", "G3"]
+>>> player.play_wave(synthesizer.generate_chord(chord, 3.0))
+
+# You can also specify frequencies to play just intonation
+>>> chord = [440.0, 550.0, 660.0]
 >>> player.play_wave(synthesizer.generate_chord(chord, 3.0))
 ```
 
@@ -64,7 +68,7 @@ $ pip install pyaudio
 >>> from synthesizer import Writer
 >>> writer = Writer()
 
->>> chord = [261.626,  329.628, 391.996]
+>>> chord = ["C4", "E4", "G4"]
 >>> wave = synthesizer.generate_chord(chord, 3.0)
 >>> writer.write_wave("path/to/your.wav", wave)
 ```
