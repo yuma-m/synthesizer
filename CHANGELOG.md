@@ -1,6 +1,10 @@
+# Changelog
+
 ## TBD
 
-- Support scale expression to generate chord
+## 0.2.0
+
+- Support scale expression to generate chord.
 
 ## 0.1.5
 
