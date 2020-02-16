@@ -1,3 +1,7 @@
+## TBD
+
+- Support scale expression to generate chord
+
 ## 0.1.5
 
 - Support triangle wave.
