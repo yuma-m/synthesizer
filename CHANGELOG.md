@@ -1,6 +1,8 @@
 # Changelog
 
-## TBD
+## Forthcoming
+
+- Add example to integrate with [PyChord](https://github.com/yuma-m/pychord).
 
 ## 0.2.0
 
