@@ -52,6 +52,14 @@ $ pip install pyaudio
 >>> player.play_wave(synthesizer.generate_chord(chord, 3.0))
 ```
 
+You can use [PyChord](https://github.com/yuma-m/pychord) to handle chords easily.
+
+```python
+>>> from pychord import Chord
+>>> chord = Chord("Dm7/G")
+>>> player.play_wave(synthesizer.generate_chord(chord.components_with_pitch(root_pitch=3), 3.0))
+```
+
 ### Specify audio device
 
 ```python
@@ -71,6 +79,17 @@ $ pip install pyaudio
 >>> chord = ["C4", "E4", "G4"]
 >>> wave = synthesizer.generate_chord(chord, 3.0)
 >>> writer.write_wave("path/to/your.wav", wave)
+```
+
+## Examples
+
+### play_pychord.py
+
+Play chords using [PyChord](https://github.com/yuma-m/pychord).
+
+```bash
+pip install pychord>=0.5.0
+python example/play_pychord.py A C#m7 DM7 Bm7/E A
 ```
 
 ## Supported OS
