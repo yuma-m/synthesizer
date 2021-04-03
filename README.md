@@ -1,5 +1,4 @@
-# Python synthesizer [![Build Status](https://travis-ci.org/yuma-m/synthesizer.svg?branch=master)](https://travis-ci.org/yuma-m/synthesizer) [![Documentation Status](https://readthedocs.org/projects/synthesizer/badge/?version=latest)](http://synthesizer.readthedocs.io/en/latest/?badge=latest)
-
+# Python synthesizer ![Build Status](https://github.com/yuma-m/synthesizer/actions/workflows/build.yml/badge.svg) [![Documentation Status](https://readthedocs.org/projects/synthesizer/badge/?version=latest)](http://synthesizer.readthedocs.io/en/latest/?badge=latest)
 
 - Virtual analog synthesizer. 
 
@@ -100,7 +99,7 @@ python example/play_pychord.py A C#m7 DM7 Bm7/E A
 ## Supported versions
 
 - Python 2.7
-- Python 3.4 and above
+- Python 3.5 and above
 
 ## Author
 
