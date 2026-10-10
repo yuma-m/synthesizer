@@ -28,57 +28,37 @@ jobs:
     - uses: actions/checkout@v4
       with:
         ref: main
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
-    - name: Bump version
+        fetch-depth: 0
+    - name: Determine next version
       id: version
       env:
         BUMP: ${{ inputs.bump }}
       run: |
-        version=$(python - <<'EOF'
-        import os, re, tomllib
-        with open("pyproject.toml", "rb") as f:
-            current = tomllib.load(f)["project"]["version"]
-        major, minor, patch = map(int, current.split("."))
-        bump = os.environ["BUMP"]
-        if bump == "major":
-            major, minor, patch = major + 1, 0, 0
-        elif bump == "minor":
-            minor, patch = minor + 1, 0
-        else:
-            patch += 1
-        new = f"{major}.{minor}.{patch}"
-        with open("pyproject.toml") as f:
-            text = f.read()
-        text = re.sub(r'(?m)^version = ".*"$', f'version = "{new}"', text, count=1)
-        with open("pyproject.toml", "w") as f:
-            f.write(text)
-        print(new)
-        EOF
-        )
-        if git ls-remote --exit-code --tags origin "refs/tags/v$version" >/dev/null; then
-          echo "Tag v$version already exists" >&2
+        latest=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)
+        IFS=. read -r major minor patch <<< "${latest#v}"
+        case "$BUMP" in
+          major) major=$((major + 1)); minor=0; patch=0 ;;
+          minor) minor=$((minor + 1)); patch=0 ;;
+          patch) patch=$((patch + 1)) ;;
+        esac
+        tag="v$major.$minor.$patch"
+        if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+          echo "Tag $tag already exists" >&2
           exit 1
         fi
-        echo "tag=v$version" >> "$GITHUB_OUTPUT"
-    - name: Commit and tag
-      env:
-        TAG: ${{ steps.version.outputs.tag }}
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git commit -am "Release $TAG"
-        git tag "$TAG"
-        git push origin main "$TAG"
-    - name: Create GitHub release
+        echo "Releasing $tag (previous: $latest)"
+        echo "tag=$tag" >> "$GITHUB_OUTPUT"
+        echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+    # The version is derived from the tag by setuptools-scm,
+    # so no commit to main is needed.
+    - name: Create tag and GitHub release
       env:
         GH_TOKEN: ${{ github.token }}
         TAG: ${{ steps.version.outputs.tag }}
-      run: gh release create "$TAG" --title "$TAG" --generate-notes
+        SHA: ${{ steps.version.outputs.sha }}
+      run: gh release create "$TAG" --target "$SHA" --title "$TAG" --generate-notes
 
-  # Tags pushed with GITHUB_TOKEN do not trigger other workflows,
+  # Tags created with GITHUB_TOKEN do not trigger other workflows,
   # so call the deploy workflow explicitly.
   deploy:
     needs: release
