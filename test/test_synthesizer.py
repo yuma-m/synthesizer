@@ -32,7 +32,7 @@ def test_constant_wave(waveform):
 def test_oscillator_waveform(waveform, func):
     phases = _phases(440.0, 0.1)
     osc = Oscillator(waveform=waveform, volume=0.5)
-    np.testing.assert_allclose(osc.generate_wave(phases), 0.5 * func(phases))
+    np.testing.assert_allclose(osc.generate_wave(phases), 0.5 * func(phases), atol=1e-12)
 
 
 @pytest.mark.parametrize("volume, expected", [

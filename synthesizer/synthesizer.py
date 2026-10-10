@@ -7,6 +7,12 @@ from enum import Enum
 from .frequency import frequency_from_scale
 
 
+def _triangle(phases):
+    u""" triangle wave with period 2*pi, rising from -1 at phase 0 to 1 at phase pi """
+    cycle = np.mod(phases / (2.0 * np.pi), 1.0)
+    return 1.0 - 4.0 * np.abs(cycle - 0.5)
+
+
 class Waveform(Enum):
     sine = "sine"
     sawtooth = "sawtooth"
@@ -40,16 +46,12 @@ class Oscillator(object):
         elif self._waveform is Waveform.square:
             return scipy.signal.square
         elif self._waveform is Waveform.triangle:
-            return self.gen_triang
+            return _triangle
         raise TypeError("unknown waveform: {}".format(self._waveform))
 
     def generate_wave(self, phases):
         phases = np.copy(phases) * self._freq_transpose
         return self._volume * self._wave_func(phases)
-    
-    @staticmethod
-    def gen_triang(t, width=0.5):
-        return scipy.signal.sawtooth(t, width)
 
 
 class Synthesizer(object):
