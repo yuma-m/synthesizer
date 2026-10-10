@@ -66,7 +66,7 @@ def test_oscillator_unknown_waveform():
 
 
 def test_constant_wave_matches_analytic_sine():
-    synthesizer = Synthesizer(osc1_waveform=Waveform.sine, osc1_volume=0.8, rate=RATE)
+    synthesizer = Synthesizer(osc1_waveform=Waveform.sine, osc1_volume=0.8, attack=0.0, release=0.0, rate=RATE)
     wave = synthesizer.generate_constant_wave(440.0, 1.0)
     np.testing.assert_allclose(wave, 0.8 * np.sin(_phases(440.0, 1.0)))
 
@@ -105,7 +105,7 @@ def test_osc2_mix_is_normalized():
         osc1_waveform=Waveform.sawtooth, osc1_volume=1.0,
         use_osc2=True, osc2_waveform=Waveform.square,
         osc2_volume=0.3, osc2_freq_transpose=3.0,
-        rate=RATE,
+        attack=0.0, release=0.0, rate=RATE,
     )
     wave = synthesizer.generate_constant_wave(440.0, 1.0)
     phases = _phases(440.0, 1.0)
@@ -115,7 +115,7 @@ def test_osc2_mix_is_normalized():
 
 
 def test_osc2_default_parameters():
-    synthesizer = Synthesizer(use_osc2=True, rate=RATE)
+    synthesizer = Synthesizer(use_osc2=True, attack=0.0, release=0.0, rate=RATE)
     wave = synthesizer.generate_constant_wave(440.0, 1.0)
     phases = _phases(440.0, 1.0)
     expected = (np.sin(phases) + 0.3 * np.sin(phases * 2.0)) / 1.3
@@ -126,6 +126,63 @@ def test_osc2_mix_with_zero_volumes():
     synthesizer = Synthesizer(osc1_volume=0.0, use_osc2=True, osc2_volume=0.0, rate=RATE)
     wave = synthesizer.generate_constant_wave(440.0, 1.0)
     np.testing.assert_array_equal(wave, np.zeros(RATE))
+
+
+@pytest.mark.parametrize("waveform", list(Waveform))
+def test_envelope_starts_and_ends_at_zero(waveform):
+    synthesizer = Synthesizer(osc1_waveform=waveform, rate=RATE)
+    wave = synthesizer.generate_constant_wave(440.0, 1.0)
+    assert wave[0] == 0.0
+    assert wave[-1] == 0.0
+
+
+def test_envelope_shape():
+    synthesizer = Synthesizer(attack=0.1, release=0.2, rate=RATE)
+    wave = synthesizer.generate_constant_wave(440.0, 1.0)
+    raw = Synthesizer(attack=0.0, release=0.0, rate=RATE).generate_constant_wave(440.0, 1.0)
+    expected = raw.copy()
+    expected[:1600] *= 0.5 - 0.5 * np.cos(np.linspace(0.0, np.pi, 1600))
+    expected[-3200:] *= 0.5 + 0.5 * np.cos(np.linspace(0.0, np.pi, 3200))
+    np.testing.assert_allclose(wave, expected)
+    np.testing.assert_array_equal(wave[1600:-3200], raw[1600:-3200])
+
+
+def test_default_envelope_length():
+    synthesizer = Synthesizer(rate=RATE)
+    wave = synthesizer.generate_constant_wave(440.0, 1.0)
+    raw = Synthesizer(attack=0.0, release=0.0, rate=RATE).generate_constant_wave(440.0, 1.0)
+    # 10ms at 16kHz = 160 samples on each side
+    np.testing.assert_array_equal(wave[160:-160], raw[160:-160])
+    assert not np.array_equal(wave[:160], raw[:160])
+    assert not np.array_equal(wave[-160:], raw[-160:])
+
+
+def test_envelope_longer_than_wave():
+    synthesizer = Synthesizer(attack=1.0, release=1.0, rate=RATE)
+    wave = synthesizer.generate_constant_wave(440.0, 0.01)
+    assert wave.size == 160
+    assert wave[0] == 0.0
+    assert wave[-1] == 0.0
+    assert np.abs(wave).max() <= 1.0
+
+
+def test_envelope_disabled():
+    synthesizer = Synthesizer(attack=0.0, release=0.0, rate=RATE)
+    wave = synthesizer.generate_constant_wave(440.0, 1.0)
+    np.testing.assert_allclose(wave, np.sin(_phases(440.0, 1.0)))
+
+
+def test_negative_envelope_is_treated_as_zero():
+    synthesizer = Synthesizer(attack=-1.0, release=-1.0, rate=RATE)
+    wave = synthesizer.generate_constant_wave(440.0, 1.0)
+    np.testing.assert_allclose(wave, np.sin(_phases(440.0, 1.0)))
+
+
+def test_chord_envelope_starts_and_ends_at_zero():
+    synthesizer = Synthesizer(rate=RATE)
+    wave = synthesizer.generate_chord(["C4", "E4", "G4"], 1.0)
+    assert wave[0] == 0.0
+    assert wave[-1] == 0.0
 
 
 @pytest.mark.parametrize("freqs", [

@@ -63,6 +63,16 @@ You can use [PyChord](https://github.com/yuma-m/pychord) to handle chords easily
 >>> player.play_wave(synthesizer.generate_chord(chord.components_with_pitch(root_pitch=3), 3.0))
 ```
 
+### Attack and release
+
+Each generated wave fades in and out (10 ms by default) to prevent click noise between notes.
+
+```python
+>>> synthesizer = Synthesizer(osc1_waveform=Waveform.sine, attack=0.05, release=0.2)
+# Disable the envelope
+>>> synthesizer = Synthesizer(osc1_waveform=Waveform.sine, attack=0.0, release=0.0)
+```
+
 ### Specify audio device
 
 ```python
