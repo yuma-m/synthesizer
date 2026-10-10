@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 import pytest
 from scipy.io import wavfile
@@ -8,7 +6,7 @@ from synthesizer import Synthesizer, Waveform, Writer
 
 
 def _to_int16(wave):
-    return (wave * float(2 ** 15 - 1)).astype(np.int16)
+    return (wave * (2 ** 15 - 1)).astype(np.int16)
 
 
 @pytest.mark.parametrize("rate", [44100, 16000])

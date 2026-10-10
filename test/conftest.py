@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
-
 import sys
 import types
 
 import pytest
 
 
-class FakeStream(object):
+class FakeStream:
 
     def __init__(self, **kwargs):
         self.kwargs = kwargs
@@ -23,7 +21,7 @@ class FakeStream(object):
         self.closed = True
 
 
-class FakePyAudio(object):
+class FakePyAudio:
 
     devices = [
         {"index": 0, "name": "Built-in Microphone", "defaultSampleRate": 44100.0,

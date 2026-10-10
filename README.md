@@ -116,7 +116,7 @@ python example/play_pychord.py A C#m7 DM7 Bm7/E A
 
 ## Author
 
-- [Yuma Mihira](http://yurax2.com/)
+- [Yuma Mihira](https://yuma.cloud/)
 
 ## License
 
@@ -124,6 +124,6 @@ python example/play_pychord.py A C#m7 DM7 Bm7/E A
 
 ## Links
 
-- PyPI: https://pypi.python.org/pypi/synthesizer
-- GitHub: https://github.com/yuma-m/synthesizer
-- Document: https://synthesizer.readthedocs.io
+- PyPI: <https://pypi.python.org/pypi/synthesizer>
+- GitHub: <https://github.com/yuma-m/synthesizer>
+- Document: <https://synthesizer.readthedocs.io>
