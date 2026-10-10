@@ -110,7 +110,7 @@ python example/play_pychord.py A C#m7 DM7 Bm7/E A
 
 ## License
 
-- GPL v3 License
+- MIT License
 
 ## Links
 
