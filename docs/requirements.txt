@@ -1,2 +1,2 @@
-numpy>=1.22
-scipy>=1.8
+sphinx>=8
+sphinx-rtd-theme>=3

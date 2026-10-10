@@ -4,6 +4,14 @@ synthesizer package
 Submodules
 ----------
 
+synthesizer.frequency module
+----------------------------
+
+.. automodule:: synthesizer.frequency
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 synthesizer.player module
 -------------------------
 
