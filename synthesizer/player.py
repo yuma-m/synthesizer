@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
+from .utils import to_int16
 
 
 class Player(object):
@@ -16,6 +16,12 @@ class Player(object):
         # TODO: support stereo channels
         self._channels = 1
         self._rate = rate
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
 
     def enumerate_device(self):
         if not self._pyaudio:
@@ -49,6 +55,7 @@ class Player(object):
         else:
             device = self._pyaudio.get_default_output_device_info()
 
+        self.close_stream()
         self._stream = self._pyaudio.open(
             channels=self._channels,
             format=self._format,
@@ -64,5 +71,18 @@ class Player(object):
         """
         if not self._stream:
             raise RuntimeError("audio stream is not opened, please call open_stream() first.")
-        wave = (wave * float(2 ** 15 - 1)).astype(np.int16).tobytes()
-        self._stream.write(wave)
+        self._stream.write(to_int16(wave).tobytes())
+
+    def close_stream(self):
+        u""" close audio output stream if opened """
+        if self._stream:
+            self._stream.stop_stream()
+            self._stream.close()
+            self._stream = None
+
+    def close(self):
+        u""" close audio output stream and release PyAudio resources """
+        self.close_stream()
+        if self._pyaudio:
+            self._pyaudio.terminate()
+            self._pyaudio = None
