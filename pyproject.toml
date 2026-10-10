@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
-authors = [{ name = "Yuma Mihira", email = "info@yurax2.com" }]
+authors = [{ name = "Yuma Mihira", email = "info@yuma.cloud" }]
 keywords = ["analog", "synthesizer"]
 classifiers = [
     "Development Status :: 4 - Beta",

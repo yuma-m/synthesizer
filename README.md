@@ -1,17 +1,27 @@
-# Python synthesizer ![Build Status](https://github.com/yuma-m/synthesizer/actions/workflows/build.yml/badge.svg) [![Documentation Status](https://readthedocs.org/projects/synthesizer/badge/?version=latest)](http://synthesizer.readthedocs.io/en/latest/?badge=latest)
+# Python synthesizer
 
-- Virtual analog synthesizer. 
+[![Build Status](https://github.com/yuma-m/synthesizer/actions/workflows/build.yml/badge.svg)](https://github.com/yuma-m/synthesizer/actions/workflows/build.yml)
+[![Documentation Status](https://readthedocs.org/projects/synthesizer/badge/?version=latest)](https://synthesizer.readthedocs.io/en/latest/?badge=latest)
+[![PyPI](https://img.shields.io/pypi/v/synthesizer)](https://pypi.org/project/synthesizer/)
+
+A simple virtual analog synthesizer written in Python.
+
+- Oscillators: sine, sawtooth, square (with pulse width), triangle and noise, plus a detunable second oscillator
+- ADSR envelope
+- Resonant lowpass / highpass / bandpass filter
+- LFO for vibrato, tremolo and filter cutoff modulation
+- Playback via PyAudio and export to wav files
 
 ## Installation
 
 ```bash
-$ pip install synthesizer
+pip install synthesizer
 ```
 
 To play sounds with `Player`, install [PyAudio](https://pypi.org/project/PyAudio/) as well.
 
 ```bash
-$ pip install "synthesizer[audio]"
+pip install "synthesizer[audio]"
 ```
 
 ### Install dependencies for PyAudio
@@ -19,18 +29,21 @@ $ pip install "synthesizer[audio]"
 #### Ubuntu
 
 ```bash
-$ apt install portaudio19-dev
+apt install portaudio19-dev
 ```
 
-### macOS
+#### macOS
 
 ```bash
-$ brew install portaudio
+brew install portaudio
 ```
 
 ## Basic usage
 
 ### Play 440Hz sine wave
+
+Generated waves are NumPy arrays normalized to [-1.0, 1.0].
+Available waveforms are `Waveform.sine`, `Waveform.sawtooth`, `Waveform.square`, `Waveform.triangle` and `Waveform.noise`.
 
 ```python
 >>> from synthesizer import Player, Synthesizer, Waveform
@@ -138,6 +151,14 @@ Each depth is 0 (disabled) by default.
 >>> player.open_stream(device_name="UA-25EX")
 ```
 
+`Player` can also be used as a context manager, which closes the stream and releases PyAudio resources on exit.
+
+```python
+>>> with Player() as player:
+...     player.open_stream()
+...     player.play_wave(synthesizer.generate_constant_wave("A4", 1.0))
+```
+
 ### Write wav file
 
 ```python
@@ -147,16 +168,43 @@ Each depth is 0 (disabled) by default.
 >>> chord = ["C4", "E4", "G4"]
 >>> wave = synthesizer.generate_chord(chord, 3.0)
 >>> writer.write_wave("path/to/your.wav", wave)
+
+# Concatenate multiple waves into a single file
+>>> writer.write_waves("path/to/your.wav", wave1, wave2, wave3)
 ```
 
 ## Examples
+
+### play_440hz.py
+
+Play 440Hz waves with each waveform and some oscillator combinations.
+
+```bash
+python example/play_440hz.py
+```
+
+### play_chord.py
+
+Play various chords and a chord sequence.
+
+```bash
+python example/play_chord.py
+```
+
+### write_wave.py
+
+Write a chord progression to `example/test.wav`.
+
+```bash
+python example/write_wave.py
+```
 
 ### play_pychord.py
 
 Play chords using [PyChord](https://github.com/yuma-m/pychord).
 
 ```bash
-pip install pychord>=0.5.0
+pip install "pychord>=0.5.0"
 python example/play_pychord.py A C#m7 DM7 Bm7/E A
 ```
 
@@ -166,6 +214,13 @@ Play presets using oscillator extensions, ADSR envelope, filter and LFO.
 
 ```bash
 python example/play_synth_features.py
+```
+
+## Development
+
+```bash
+pip install -e ".[test,audio]"
+pytest
 ```
 
 ## Supported OS
@@ -187,6 +242,6 @@ python example/play_synth_features.py
 
 ## Links
 
-- PyPI: <https://pypi.python.org/pypi/synthesizer>
+- PyPI: <https://pypi.org/project/synthesizer/>
 - GitHub: <https://github.com/yuma-m/synthesizer>
-- Document: <https://synthesizer.readthedocs.io>
+- Documentation: <https://synthesizer.readthedocs.io>
