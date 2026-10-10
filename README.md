@@ -110,6 +110,24 @@ A resonant 2-pole (12 dB/oct) filter can be applied to the oscillators.
 Available filter types are `FilterType.lowpass`, `FilterType.highpass` and `FilterType.bandpass`.
 High resonance may push the wave beyond [-1.0, 1.0]; such samples are clipped when played or written.
 
+### LFO
+
+An LFO (low frequency oscillator) can modulate pitch (vibrato), amplitude (tremolo) and filter cutoff.
+Each depth is 0 (disabled) by default.
+
+```python
+# Vibrato of +-30 cents and tremolo at 6 Hz
+>>> synthesizer = Synthesizer(osc1_waveform=Waveform.triangle,
+...                           lfo_rate=6.0, lfo_pitch_depth=30.0, lfo_amp_depth=0.4)
+
+# Wah effect: sweep the cutoff +-2 octaves at 2 Hz
+>>> synthesizer = Synthesizer(osc1_waveform=Waveform.sawtooth, osc1_volume=0.4,
+...                           filter_type=FilterType.lowpass, filter_cutoff=800.0, filter_resonance=6.0,
+...                           lfo_rate=2.0, lfo_cutoff_depth=2.0)
+```
+
+`lfo_waveform` accepts any `Waveform`; `Waveform.noise` gives a random value per LFO cycle (sample and hold).
+
 ### Specify audio device
 
 ```python
@@ -140,6 +158,14 @@ Play chords using [PyChord](https://github.com/yuma-m/pychord).
 ```bash
 pip install pychord>=0.5.0
 python example/play_pychord.py A C#m7 DM7 Bm7/E A
+```
+
+### play_synth_features.py
+
+Play presets using oscillator extensions, ADSR envelope, filter and LFO.
+
+```bash
+python example/play_synth_features.py
 ```
 
 ## Supported OS

@@ -81,6 +81,8 @@ class Synthesizer:
                  use_osc2=False, osc2_waveform=Waveform.sine,
                  osc2_volume=0.3, osc2_freq_transpose=2.0, osc2_detune=0.0, osc2_pulse_width=0.5,
                  filter_type=None, filter_cutoff=1000.0, filter_resonance=0.707,
+                 lfo_waveform=Waveform.sine, lfo_rate=5.0,
+                 lfo_pitch_depth=0.0, lfo_amp_depth=0.0, lfo_cutoff_depth=0.0,
                  attack=0.01, decay=0.0, sustain=1.0, release=0.01, rate=44100, seed=None):
         """ Constructor of Synthesizer
 
@@ -97,6 +99,11 @@ class Synthesizer:
         :param float filter_cutoff: cutoff frequency of filter (Hz)
         :param float filter_resonance: resonance (Q factor) of filter, 0.707 gives a flat response.
                                        high resonance may push peaks beyond [-1.0, 1.0]
+        :param Waveform lfo_waveform: waveform of LFO, noise gives a random value per LFO cycle (sample and hold)
+        :param float lfo_rate: frequency of LFO (Hz)
+        :param float lfo_pitch_depth: depth of pitch modulation by LFO (cents), aka vibrato
+        :param float lfo_amp_depth: depth of amplitude modulation by LFO (0.0 - 1.0), aka tremolo
+        :param float lfo_cutoff_depth: depth of filter cutoff modulation by LFO (octaves)
         :param float attack: fade-in time of each wave (seconds), prevents click noise at the start
         :param float decay: time to fall from the peak to the sustain level after attack (seconds)
         :param float sustain: level held after decay until release (0.0 - 1.0)
@@ -105,8 +112,8 @@ class Synthesizer:
         :param int rate: sampling rate
         :param (int|None) seed: random seed for noise waveform, makes noise reproducible
         """
-        # spawn independent random streams so that osc1 and osc2 noise are not identical
-        osc1_seed, osc2_seed = np.random.SeedSequence(seed).spawn(2)
+        # spawn independent random streams so that osc1, osc2 and LFO noise are not identical
+        osc1_seed, osc2_seed, lfo_seed = np.random.SeedSequence(seed).spawn(3)
         self._osc1 = Oscillator(waveform=osc1_waveform, volume=osc1_volume,
                                 pulse_width=osc1_pulse_width, seed=osc1_seed)
         self._use_osc2 = use_osc2
@@ -120,6 +127,13 @@ class Synthesizer:
             self._filter = None
         else:
             self._filter = Filter(filter_type, cutoff=filter_cutoff, resonance=filter_resonance, rate=rate)
+        self._lfo_waveform = lfo_waveform
+        self._lfo_osc = Oscillator(waveform=lfo_waveform, volume=1.0)
+        self._lfo_rng = np.random.default_rng(lfo_seed)
+        self._lfo_rate = max(0.0, lfo_rate)
+        self._lfo_pitch_depth = lfo_pitch_depth
+        self._lfo_amp_depth = max(0.0, min(1.0, lfo_amp_depth))
+        self._lfo_cutoff_depth = lfo_cutoff_depth if self._filter is not None else 0.0
         self._attack = max(0.0, attack)
         self._decay = max(0.0, decay)
         self._sustain = max(0.0, min(1.0, sustain))
@@ -134,6 +148,15 @@ class Synthesizer:
             if total_volume > 0.0:
                 wave /= total_volume
         return wave
+
+    def _lfo(self, size):
+        """ LFO signal in [-1.0, 1.0], restarted at phase 0 for each wave """
+        times = np.arange(size) / self._rate
+        if self._lfo_waveform is Waveform.noise:
+            # sample and hold: a new random value for each LFO cycle
+            cycles = np.floor(times * self._lfo_rate).astype(int)
+            return self._lfo_rng.uniform(-1.0, 1.0, cycles[-1] + 1 if size else 0)[cycles]
+        return self._lfo_osc.generate_wave(2.0 * np.pi * self._lfo_rate * times)
 
     def _envelope(self, size):
         """ ADSR envelope; release is applied multiplicatively so it starts from the current level """
@@ -163,10 +186,22 @@ class Synthesizer:
         """
         if isinstance(frequency, str):
             frequency = frequency_from_scale(frequency)
-        phases = np.cumsum(2.0 * np.pi * frequency / self._rate * np.ones(int(self._rate * float(length))))
+        size = int(self._rate * float(length))
+        use_lfo = self._lfo_pitch_depth != 0.0 or self._lfo_amp_depth > 0.0 or self._lfo_cutoff_depth != 0.0
+        lfo = self._lfo(size) if use_lfo else None
+
+        frequencies = frequency * np.ones(size)
+        if self._lfo_pitch_depth != 0.0:
+            frequencies *= 2 ** (lfo * self._lfo_pitch_depth / 1200.0)
+        phases = np.cumsum(2.0 * np.pi * frequencies / self._rate)
         wave = self._generate_wave(phases)
         if self._filter is not None:
-            wave = self._filter.apply(wave)
+            cutoff = None
+            if self._lfo_cutoff_depth != 0.0:
+                cutoff = self._filter.cutoff * 2 ** (lfo * self._lfo_cutoff_depth)
+            wave = self._filter.apply(wave, cutoff=cutoff)
+        if self._lfo_amp_depth > 0.0:
+            wave *= 1.0 - self._lfo_amp_depth * (1.0 - lfo) / 2.0
         return self._apply_envelope(wave)
 
     def generate_chord(self, freqs, length):
