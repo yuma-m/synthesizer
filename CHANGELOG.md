@@ -1,7 +1,12 @@
 # Changelog
 
-## Forthcoming
+## 0.3.0
 
+- Support Python 3.10 and above, and drop support for Python 2.7 and Python 3.9 and below.
+- Remove `enum34` dependency.
+- `PyAudio` can be installed as an optional dependency with `pip install "synthesizer[audio]"`.
+- `frequency_from_scale()` raises `ValueError` for unknown notes instead of returning it.
+- Migrate packaging to `pyproject.toml` and tests from nose to pytest.
 - Add example to integrate with [PyChord](https://github.com/yuma-m/pychord).
 
 ## 0.2.0

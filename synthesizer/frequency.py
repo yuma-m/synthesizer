@@ -31,5 +31,5 @@ def frequency_from_scale(scale):
     base, octave = scale[:-1], scale[-1]
     octave = int(octave)
     if base not in BASE_FREQUENCY:
-        return ValueError("Unknown note: {}".format(base))
+        raise ValueError("Unknown note: {}".format(base))
     return BASE_FREQUENCY[base] * 2 ** (octave - 1)

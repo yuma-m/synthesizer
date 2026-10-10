@@ -8,20 +8,24 @@
 $ pip install synthesizer
 ```
 
-### Install dependencies
+To play sounds with `Player`, install [PyAudio](https://pypi.org/project/PyAudio/) as well.
+
+```bash
+$ pip install "synthesizer[audio]"
+```
+
+### Install dependencies for PyAudio
 
 #### Ubuntu
 
 ```bash
 $ apt install portaudio19-dev
-$ pip install pyaudio
 ```
 
 ### macOS
 
 ```bash
 $ brew install portaudio
-$ pip install pyaudio
 ```
 
 ## Basic usage
@@ -93,13 +97,12 @@ python example/play_pychord.py A C#m7 DM7 Bm7/E A
 
 ## Supported OS
 
-- macOS 10.12 and above
-- Ubuntu 16.04
+- macOS
+- Linux
 
 ## Supported versions
 
-- Python 2.7
-- Python 3.5 and above
+- Python 3.10 and above
 
 ## Author
 
