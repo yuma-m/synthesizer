@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=77"]
+requires = ["setuptools>=77", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "synthesizer"
-version = "0.3.0"
+dynamic = ["version"]
 description = "A simple virtual analog synthesizer."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -38,6 +38,8 @@ test = ["pytest>=8"]
 Homepage = "https://github.com/yuma-m/synthesizer"
 Documentation = "https://synthesizer.readthedocs.io"
 Changelog = "https://github.com/yuma-m/synthesizer/releases"
+
+[tool.setuptools_scm]
 
 [tool.setuptools.packages.find]
 include = ["synthesizer*"]
