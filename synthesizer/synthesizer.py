@@ -78,7 +78,7 @@ class Synthesizer:
     def __init__(self, osc1_waveform=Waveform.sine, osc1_volume=1.0, osc1_pulse_width=0.5,
                  use_osc2=False, osc2_waveform=Waveform.sine,
                  osc2_volume=0.3, osc2_freq_transpose=2.0, osc2_detune=0.0, osc2_pulse_width=0.5,
-                 attack=0.01, release=0.01, rate=44100, seed=None):
+                 attack=0.01, decay=0.0, sustain=1.0, release=0.01, rate=44100, seed=None):
         """ Constructor of Synthesizer
 
         :param Waveform osc1_waveform: waveform for oscillator 1
@@ -91,7 +91,10 @@ class Synthesizer:
         :param float osc2_detune: fine tuning of oscillator 2 (cents)
         :param float osc2_pulse_width: duty cycle of square wave for oscillator 2 (0.01 - 0.99)
         :param float attack: fade-in time of each wave (seconds), prevents click noise at the start
-        :param float release: fade-out time of each wave (seconds), prevents click noise at the end
+        :param float decay: time to fall from the peak to the sustain level after attack (seconds)
+        :param float sustain: level held after decay until release (0.0 - 1.0)
+        :param float release: fade-out time at the end of each wave (seconds), prevents click noise at the end.
+                              the release is included in the length of the wave
         :param int rate: sampling rate
         :param (int|None) seed: random seed for noise waveform, makes noise reproducible
         """
@@ -107,6 +110,8 @@ class Synthesizer:
         else:
             self._osc2 = None
         self._attack = max(0.0, attack)
+        self._decay = max(0.0, decay)
+        self._sustain = max(0.0, min(1.0, sustain))
         self._release = max(0.0, release)
         self._rate = rate
 
@@ -119,13 +124,22 @@ class Synthesizer:
                 wave /= total_volume
         return wave
 
-    def _apply_envelope(self, wave):
-        attack = min(int(self._rate * self._attack), wave.size)
-        release = min(int(self._rate * self._release), wave.size)
-        if attack > 0:
-            wave[:attack] *= _raised_cosine(attack)
+    def _envelope(self, size):
+        """ ADSR envelope; release is applied multiplicatively so it starts from the current level """
+        attack = min(int(self._rate * self._attack), size)
+        decay = int(self._rate * self._decay)
+        release = min(int(self._rate * self._release), size)
+        envelope = np.full(size, self._sustain)
+        envelope[:attack] = _raised_cosine(attack)
+        # decay is cut off (not compressed) if the wave ends before it completes
+        decay_part = envelope[attack:attack + decay]
+        decay_part[:] = (1.0 - (1.0 - self._sustain) * _raised_cosine(decay))[:decay_part.size]
         if release > 0:
-            wave[-release:] *= _raised_cosine(release)[::-1]
+            envelope[-release:] *= _raised_cosine(release)[::-1]
+        return envelope
+
+    def _apply_envelope(self, wave):
+        wave *= self._envelope(wave.size)
         return wave
 
     def generate_constant_wave(self, frequency, length):

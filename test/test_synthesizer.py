@@ -258,6 +258,72 @@ def test_negative_envelope_is_treated_as_zero():
     np.testing.assert_allclose(wave, np.sin(_phases(440.0, 1.0)))
 
 
+def _envelope_of(synthesizer, length=1.0):
+    """ envelope of synthesizer, measured by applying it to a constant wave """
+    return synthesizer._apply_envelope(np.ones(int(RATE * length)))
+
+
+def test_adsr_envelope_shape():
+    synthesizer = Synthesizer(attack=0.1, decay=0.2, sustain=0.6, release=0.3, rate=RATE)
+    envelope = _envelope_of(synthesizer)
+    attack = 0.5 - 0.5 * np.cos(np.linspace(0.0, np.pi, 1600))
+    decay = 1.0 - 0.4 * (0.5 - 0.5 * np.cos(np.linspace(0.0, np.pi, 3200)))
+    release = 0.5 + 0.5 * np.cos(np.linspace(0.0, np.pi, 4800))
+    np.testing.assert_allclose(envelope[:1600], attack)
+    np.testing.assert_allclose(envelope[1600:4800], decay)
+    np.testing.assert_allclose(envelope[4800:11200], 0.6)
+    np.testing.assert_allclose(envelope[11200:], 0.6 * release)
+
+
+def test_adsr_envelope_applied_to_wave():
+    synthesizer = Synthesizer(attack=0.1, decay=0.2, sustain=0.6, release=0.3, rate=RATE)
+    raw = Synthesizer(attack=0.0, release=0.0, rate=RATE).generate_constant_wave(440.0, 1.0)
+    np.testing.assert_allclose(synthesizer.generate_constant_wave(440.0, 1.0), raw * _envelope_of(synthesizer))
+
+
+def test_decay_without_attack_starts_from_peak():
+    envelope = _envelope_of(Synthesizer(attack=0.0, decay=0.1, sustain=0.5, release=0.0, rate=RATE))
+    assert envelope[0] == pytest.approx(1.0)
+    assert envelope[1599] == pytest.approx(0.5)
+    np.testing.assert_allclose(envelope[1600:], 0.5)
+    assert np.all(np.diff(envelope[:1600]) <= 0.0)
+
+
+@pytest.mark.parametrize("sustain, expected", [
+    (-0.5, 0.0),
+    (0.0, 0.0),
+    (0.4, 0.4),
+    (1.0, 1.0),
+    (1.5, 1.0),
+])
+def test_sustain_is_clamped(sustain, expected):
+    envelope = _envelope_of(Synthesizer(attack=0.0, decay=0.1, sustain=sustain, release=0.0, rate=RATE))
+    np.testing.assert_allclose(envelope[1600:], expected)
+
+
+def test_zero_sustain_silences_tail():
+    synthesizer = Synthesizer(attack=0.01, decay=0.1, sustain=0.0, release=0.01, rate=RATE)
+    wave = synthesizer.generate_constant_wave(440.0, 1.0)
+    np.testing.assert_array_equal(wave[160 + 1600:], 0.0)
+
+
+def test_decay_is_cut_off_when_wave_ends():
+    synthesizer = Synthesizer(attack=0.0, decay=1.0, sustain=0.0, release=0.0, rate=RATE)
+    envelope = _envelope_of(synthesizer, length=0.5)
+    full = _envelope_of(synthesizer, length=2.0)
+    np.testing.assert_allclose(envelope, full[:8000])
+
+
+def test_negative_decay_is_treated_as_zero():
+    envelope = _envelope_of(Synthesizer(attack=0.0, decay=-1.0, sustain=0.3, release=0.0, rate=RATE))
+    np.testing.assert_allclose(envelope, 0.3)
+
+
+def test_default_envelope_has_full_sustain():
+    synthesizer = Synthesizer(rate=RATE)
+    np.testing.assert_array_equal(_envelope_of(synthesizer)[160:-160], 1.0)
+
+
 def test_chord_envelope_starts_and_ends_at_zero():
     synthesizer = Synthesizer(rate=RATE)
     wave = synthesizer.generate_chord(["C4", "E4", "G4"], 1.0)

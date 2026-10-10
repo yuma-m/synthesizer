@@ -78,14 +78,22 @@ You can use [PyChord](https://github.com/yuma-m/pychord) to handle chords easily
 ...                           osc2_freq_transpose=1.0, osc2_detune=7.0)
 ```
 
-### Attack and release
+### ADSR envelope
 
 Each generated wave fades in and out (10 ms by default) to prevent click noise between notes.
+The release is included in the length of the wave.
 
 ```python
 >>> synthesizer = Synthesizer(osc1_waveform=Waveform.sine, attack=0.05, release=0.2)
 # Disable the envelope
 >>> synthesizer = Synthesizer(osc1_waveform=Waveform.sine, attack=0.0, release=0.0)
+```
+
+Use `decay` and `sustain` for a full ADSR envelope, e.g. a plucked sound.
+
+```python
+>>> synthesizer = Synthesizer(osc1_waveform=Waveform.sawtooth,
+...                           attack=0.005, decay=0.3, sustain=0.2, release=0.1)
 ```
 
 ### Specify audio device
