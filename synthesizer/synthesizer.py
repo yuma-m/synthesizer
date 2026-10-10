@@ -13,6 +13,11 @@ def _triangle(phases):
     return 1.0 - 4.0 * np.abs(cycle - 0.5)
 
 
+def _raised_cosine(size):
+    u""" smooth ramp rising from 0 to 1, which causes less click noise than a linear ramp """
+    return 0.5 - 0.5 * np.cos(np.linspace(0.0, np.pi, size))
+
+
 class Waveform(Enum):
     sine = "sine"
     sawtooth = "sawtooth"
@@ -64,7 +69,7 @@ class Synthesizer(object):
     def __init__(self, osc1_waveform=Waveform.sine, osc1_volume=1.0,
                  use_osc2=False, osc2_waveform=Waveform.sine,
                  osc2_volume=0.3, osc2_freq_transpose=2.0,
-                 rate=44100):
+                 attack=0.01, release=0.01, rate=44100):
         u""" Constructor of Synthesizer
 
         :param Waveform osc1_waveform: waveform for oscillator 1
@@ -73,6 +78,8 @@ class Synthesizer(object):
         :param Waveform osc2_waveform: waveform for oscillator 2
         :param float osc2_volume: relative volume of oscillator 2
         :param float osc2_freq_transpose: frequency transpose for oscillator 2
+        :param float attack: fade-in time of each wave (seconds), prevents click noise at the start
+        :param float release: fade-out time of each wave (seconds), prevents click noise at the end
         :param int rate: sampling rate
         """
         self._osc1 = Oscillator(waveform=osc1_waveform, volume=osc1_volume)
@@ -81,6 +88,8 @@ class Synthesizer(object):
             self._osc2 = Oscillator(waveform=osc2_waveform, volume=osc2_volume, freq_transpose=osc2_freq_transpose)
         else:
             self._osc2 = None
+        self._attack = max(0.0, attack)
+        self._release = max(0.0, release)
         self._rate = rate
 
     def _generate_wave(self, phases):
@@ -90,6 +99,15 @@ class Synthesizer(object):
             total_volume = self._osc1.volume + self._osc2.volume
             if total_volume > 0.0:
                 wave /= total_volume
+        return wave
+
+    def _apply_envelope(self, wave):
+        attack = min(int(self._rate * self._attack), wave.size)
+        release = min(int(self._rate * self._release), wave.size)
+        if attack > 0:
+            wave[:attack] *= _raised_cosine(attack)
+        if release > 0:
+            wave[-release:] *= _raised_cosine(release)[::-1]
         return wave
 
     def generate_constant_wave(self, frequency, length):
@@ -103,7 +121,7 @@ class Synthesizer(object):
         if isinstance(frequency, str):
             frequency = frequency_from_scale(frequency)
         phases = np.cumsum(2.0 * np.pi * frequency / self._rate * np.ones(int(self._rate * float(length))))
-        return self._generate_wave(phases)
+        return self._apply_envelope(self._generate_wave(phases))
 
     def generate_chord(self, freqs, length):
         u""" generate wave consists of multiple frequencies
