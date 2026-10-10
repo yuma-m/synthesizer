@@ -102,3 +102,9 @@ ENV/
 
 # Jetbrains IDE
 .idea/
+
+# macOS
+.DS_Store
+
+# Output of example/write_wave.py
+example/test.wav
