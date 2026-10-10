@@ -79,3 +79,46 @@ def test_play_wave(fake_pyaudio):
     assert player._stream.written == [
         np.array([32767, -32767, 0, 16383], dtype=np.int16).tobytes(),
     ]
+
+
+def test_play_wave_clips_out_of_range(fake_pyaudio):
+    player = Player()
+    player.open_stream()
+    player.play_wave(np.array([1.5, -1.5]))
+    assert player._stream.written == [
+        np.array([32767, -32767], dtype=np.int16).tobytes(),
+    ]
+
+
+def test_reopen_stream_closes_previous_stream(fake_pyaudio):
+    player = Player()
+    player.open_stream()
+    first = player._stream
+    player.open_stream(device_index=2)
+    assert first.closed
+    assert player._stream is not first
+
+
+def test_close(fake_pyaudio):
+    player = Player()
+    pa = player._pyaudio
+    player.open_stream()
+    stream = player._stream
+    player.close()
+    assert stream.closed
+    assert pa.terminated
+    with pytest.raises(RuntimeError):
+        player.play_wave(np.zeros(10))
+
+
+def test_context_manager(fake_pyaudio):
+    with Player() as player:
+        pa = player._pyaudio
+        player.open_stream()
+        stream = player._stream
+    assert stream.closed
+    assert pa.terminated
+
+
+def test_close_without_pyaudio(no_pyaudio):
+    Player().close()

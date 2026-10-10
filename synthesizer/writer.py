@@ -3,6 +3,8 @@
 import numpy as np
 from scipy.io import wavfile
 
+from .utils import to_int16
+
 
 class Writer(object):
 
@@ -15,8 +17,7 @@ class Writer(object):
         :param str file_path: relative / absolute path of wave file
         :param numpy.array wave: normalized wave
         """
-        wave = (wave * float(2 ** 15 - 1)).astype(np.int16)
-        wavfile.write(file_path, self._rate, wave)
+        wavfile.write(file_path, self._rate, to_int16(wave))
 
     def write_waves(self, file_path, *waves):
         u""" write waves to a wav file

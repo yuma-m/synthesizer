@@ -11,9 +11,16 @@ class FakeStream(object):
     def __init__(self, **kwargs):
         self.kwargs = kwargs
         self.written = []
+        self.closed = False
 
     def write(self, data):
         self.written.append(data)
+
+    def stop_stream(self):
+        pass
+
+    def close(self):
+        self.closed = True
 
 
 class FakePyAudio(object):
@@ -27,6 +34,7 @@ class FakePyAudio(object):
 
     def __init__(self):
         self.stream = None
+        self.terminated = False
 
     def get_device_count(self):
         return len(self.devices)
@@ -40,6 +48,9 @@ class FakePyAudio(object):
     def open(self, **kwargs):
         self.stream = FakeStream(**kwargs)
         return self.stream
+
+    def terminate(self):
+        self.terminated = True
 
 
 @pytest.fixture

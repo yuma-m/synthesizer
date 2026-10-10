@@ -24,7 +24,7 @@ class Oscillator(object):
     u""" Virtual oscillator object
 
      :param Waveform _waveform: waveform of oscillator
-     :param float _volume: amplitude of generated wave (0.1 - 1.0)
+     :param float _volume: amplitude of generated wave (0.0 - 1.0)
      :param float _freq_transpose: transpose of frequency (for sub oscillator)
      """
 
@@ -73,7 +73,7 @@ class Synthesizer(object):
         :param Waveform osc2_waveform: waveform for oscillator 2
         :param float osc2_volume: relative volume of oscillator 2
         :param float osc2_freq_transpose: frequency transpose for oscillator 2
-        :param int rate: sampling ratio
+        :param int rate: sampling rate
         """
         self._osc1 = Oscillator(waveform=osc1_waveform, volume=osc1_volume)
         self._use_osc2 = use_osc2
@@ -87,7 +87,9 @@ class Synthesizer(object):
         wave = self._osc1.generate_wave(phases)
         if self._use_osc2:
             wave += self._osc2.generate_wave(phases)
-            wave *= (1.0 / (self._osc1.volume + self._osc2.volume))
+            total_volume = self._osc1.volume + self._osc2.volume
+            if total_volume > 0.0:
+                wave /= total_volume
         return wave
 
     def generate_constant_wave(self, frequency, length):
@@ -107,7 +109,7 @@ class Synthesizer(object):
         u""" generate wave consists of multiple frequencies
 
         :param list[float] freqs: list of frequencies or scales
-        :param length: legnth of wave (seconds)
+        :param float length: length of wave (seconds)
         :rtype: numpy.array
         :return: normalized wave
         """

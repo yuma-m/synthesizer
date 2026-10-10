@@ -40,6 +40,13 @@ def test_write_wave_full_scale(tmp_path):
     np.testing.assert_array_equal(data, np.array([32767, -32767, 0, 16383], dtype=np.int16))
 
 
+def test_write_wave_clips_out_of_range(tmp_path):
+    path = tmp_path / "test_wave.wav"
+    Writer().write_wave(str(path), np.array([1.5, -1.5]))
+    _, data = wavfile.read(str(path))
+    np.testing.assert_array_equal(data, np.array([32767, -32767], dtype=np.int16))
+
+
 def test_write_waves(tmp_path):
     path = tmp_path / "test_waves.wav"
     writer = Writer()

@@ -122,6 +122,12 @@ def test_osc2_default_parameters():
     np.testing.assert_allclose(wave, expected)
 
 
+def test_osc2_mix_with_zero_volumes():
+    synthesizer = Synthesizer(osc1_volume=0.0, use_osc2=True, osc2_volume=0.0, rate=RATE)
+    wave = synthesizer.generate_constant_wave(440.0, 1.0)
+    np.testing.assert_array_equal(wave, np.zeros(RATE))
+
+
 @pytest.mark.parametrize("freqs", [
     [261.626, 329.628, 391.995],
     ["C4", "E4", "G4"],

@@ -27,12 +27,15 @@ from synthesizer.frequency import frequency_from_scale
     ("C3", 130.813),
     ("A4", 440),
     ("E5", 659.255),
+    ("C8", 4186.009),
+    ("C10", 16744.036),
+    ("A-1", 13.75),
 ])
 def test_frequency_from_scale(scale, frequency):
     assert frequency_from_scale(scale) == pytest.approx(frequency, abs=1e-3)
 
 
-@pytest.mark.parametrize("scale", ["H4", "Cb4", "X1"])
+@pytest.mark.parametrize("scale", ["H4", "Cb4", "X1", "A", "4", "a4", "C#", "C4.5", ""])
 def test_frequency_from_scale_unknown_note(scale):
     with pytest.raises(ValueError):
         frequency_from_scale(scale)
