@@ -1,0 +1,88 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version part to bump
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+    - name: Bump version
+      id: version
+      env:
+        BUMP: ${{ inputs.bump }}
+      run: |
+        version=$(python - <<'EOF'
+        import os, re, tomllib
+        with open("pyproject.toml", "rb") as f:
+            current = tomllib.load(f)["project"]["version"]
+        major, minor, patch = map(int, current.split("."))
+        bump = os.environ["BUMP"]
+        if bump == "major":
+            major, minor, patch = major + 1, 0, 0
+        elif bump == "minor":
+            minor, patch = minor + 1, 0
+        else:
+            patch += 1
+        new = f"{major}.{minor}.{patch}"
+        with open("pyproject.toml") as f:
+            text = f.read()
+        text = re.sub(r'(?m)^version = ".*"$', f'version = "{new}"', text, count=1)
+        with open("pyproject.toml", "w") as f:
+            f.write(text)
+        print(new)
+        EOF
+        )
+        if git ls-remote --exit-code --tags origin "refs/tags/v$version" >/dev/null; then
+          echo "Tag v$version already exists" >&2
+          exit 1
+        fi
+        echo "tag=v$version" >> "$GITHUB_OUTPUT"
+    - name: Commit and tag
+      env:
+        TAG: ${{ steps.version.outputs.tag }}
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git commit -am "Release $TAG"
+        git tag "$TAG"
+        git push origin main "$TAG"
+    - name: Create GitHub release
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TAG: ${{ steps.version.outputs.tag }}
+      run: gh release create "$TAG" --title "$TAG" --generate-notes
+
+  # Tags pushed with GITHUB_TOKEN do not trigger other workflows,
+  # so call the deploy workflow explicitly.
+  deploy:
+    needs: release
+    uses: ./.github/workflows/deploy.yml
+    with:
+      ref: ${{ needs.release.outputs.tag }}
+    secrets: inherit
