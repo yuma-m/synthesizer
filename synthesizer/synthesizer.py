@@ -2,6 +2,7 @@ import numpy as np
 import scipy.signal
 from enum import Enum
 
+from .filter import Filter
 from .frequency import frequency_from_scale
 
 
@@ -73,11 +74,13 @@ class Synthesizer:
 
     :param Oscillator _osc1: main virtual oscillator
     :param (Oscillator|None) _osc2: sub virtual oscillator
+    :param (Filter|None) _filter: virtual filter applied to the oscillators
     """
 
     def __init__(self, osc1_waveform=Waveform.sine, osc1_volume=1.0, osc1_pulse_width=0.5,
                  use_osc2=False, osc2_waveform=Waveform.sine,
                  osc2_volume=0.3, osc2_freq_transpose=2.0, osc2_detune=0.0, osc2_pulse_width=0.5,
+                 filter_type=None, filter_cutoff=1000.0, filter_resonance=0.707,
                  attack=0.01, decay=0.0, sustain=1.0, release=0.01, rate=44100, seed=None):
         """ Constructor of Synthesizer
 
@@ -90,6 +93,10 @@ class Synthesizer:
         :param float osc2_freq_transpose: frequency transpose for oscillator 2
         :param float osc2_detune: fine tuning of oscillator 2 (cents)
         :param float osc2_pulse_width: duty cycle of square wave for oscillator 2 (0.01 - 0.99)
+        :param (FilterType|None) filter_type: type of filter applied to the oscillators, None disables filter
+        :param float filter_cutoff: cutoff frequency of filter (Hz)
+        :param float filter_resonance: resonance (Q factor) of filter, 0.707 gives a flat response.
+                                       high resonance may push peaks beyond [-1.0, 1.0]
         :param float attack: fade-in time of each wave (seconds), prevents click noise at the start
         :param float decay: time to fall from the peak to the sustain level after attack (seconds)
         :param float sustain: level held after decay until release (0.0 - 1.0)
@@ -109,6 +116,10 @@ class Synthesizer:
                                     pulse_width=osc2_pulse_width, seed=osc2_seed)
         else:
             self._osc2 = None
+        if filter_type is None:
+            self._filter = None
+        else:
+            self._filter = Filter(filter_type, cutoff=filter_cutoff, resonance=filter_resonance, rate=rate)
         self._attack = max(0.0, attack)
         self._decay = max(0.0, decay)
         self._sustain = max(0.0, min(1.0, sustain))
@@ -153,7 +164,10 @@ class Synthesizer:
         if isinstance(frequency, str):
             frequency = frequency_from_scale(frequency)
         phases = np.cumsum(2.0 * np.pi * frequency / self._rate * np.ones(int(self._rate * float(length))))
-        return self._apply_envelope(self._generate_wave(phases))
+        wave = self._generate_wave(phases)
+        if self._filter is not None:
+            wave = self._filter.apply(wave)
+        return self._apply_envelope(wave)
 
     def generate_chord(self, freqs, length):
         """ generate wave consists of multiple frequencies

@@ -96,6 +96,20 @@ Use `decay` and `sustain` for a full ADSR envelope, e.g. a plucked sound.
 ...                           attack=0.005, decay=0.3, sustain=0.2, release=0.1)
 ```
 
+### Filter
+
+A resonant 2-pole (12 dB/oct) filter can be applied to the oscillators.
+`filter_resonance` is the Q factor; values above 0.707 emphasize the cutoff frequency.
+
+```python
+>>> from synthesizer import FilterType
+>>> synthesizer = Synthesizer(osc1_waveform=Waveform.sawtooth,
+...                           filter_type=FilterType.lowpass, filter_cutoff=800.0, filter_resonance=4.0)
+```
+
+Available filter types are `FilterType.lowpass`, `FilterType.highpass` and `FilterType.bandpass`.
+High resonance may push the wave beyond [-1.0, 1.0]; such samples are clipped when played or written.
+
 ### Specify audio device
 
 ```python
