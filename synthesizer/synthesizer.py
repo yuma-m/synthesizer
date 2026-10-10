@@ -21,6 +21,7 @@ class Waveform(Enum):
     sawtooth = "sawtooth"
     square = "square"
     triangle = "triangle"
+    noise = "noise"
 
 
 class Oscillator:
@@ -29,27 +30,37 @@ class Oscillator:
      :param Waveform _waveform: waveform of oscillator
      :param float _volume: amplitude of generated wave (0.0 - 1.0)
      :param float _freq_transpose: transpose of frequency (for sub oscillator)
+     :param float _pulse_width: duty cycle of square wave (0.01 - 0.99)
+     :param numpy.random.Generator _rng: random generator for noise waveform
      """
 
-    def __init__(self, waveform, volume, freq_transpose=1.0):
+    def __init__(self, waveform, volume, freq_transpose=1.0, pulse_width=0.5, seed=None):
         self._waveform = waveform
         self._volume = max(0.0, min(1.0, volume))
         self._freq_transpose = freq_transpose
+        self._pulse_width = max(0.01, min(0.99, pulse_width))
+        self._rng = np.random.default_rng(seed)
 
     @property
     def volume(self):
         return self._volume
 
     @property
-    def _wave_func(self):
+    def pulse_width(self):
+        return self._pulse_width
+
+    def _wave_func(self, phases):
         if self._waveform is Waveform.sine:
-            return np.sin
+            return np.sin(phases)
         elif self._waveform is Waveform.sawtooth:
-            return scipy.signal.sawtooth
+            return scipy.signal.sawtooth(phases)
         elif self._waveform is Waveform.square:
-            return scipy.signal.square
+            return scipy.signal.square(phases, duty=self._pulse_width)
         elif self._waveform is Waveform.triangle:
-            return _triangle
+            return _triangle(phases)
+        elif self._waveform is Waveform.noise:
+            # white noise does not depend on phases
+            return self._rng.uniform(-1.0, 1.0, np.shape(phases))
         raise TypeError("unknown waveform: {}".format(self._waveform))
 
     def generate_wave(self, phases):
@@ -64,26 +75,35 @@ class Synthesizer:
     :param (Oscillator|None) _osc2: sub virtual oscillator
     """
 
-    def __init__(self, osc1_waveform=Waveform.sine, osc1_volume=1.0,
+    def __init__(self, osc1_waveform=Waveform.sine, osc1_volume=1.0, osc1_pulse_width=0.5,
                  use_osc2=False, osc2_waveform=Waveform.sine,
-                 osc2_volume=0.3, osc2_freq_transpose=2.0,
-                 attack=0.01, release=0.01, rate=44100):
+                 osc2_volume=0.3, osc2_freq_transpose=2.0, osc2_detune=0.0, osc2_pulse_width=0.5,
+                 attack=0.01, release=0.01, rate=44100, seed=None):
         """ Constructor of Synthesizer
 
         :param Waveform osc1_waveform: waveform for oscillator 1
         :param float osc1_volume: relative volume of oscillator 1
+        :param float osc1_pulse_width: duty cycle of square wave for oscillator 1 (0.01 - 0.99)
         :param bool use_osc2: if True wave from osc2 is added to wave from osc1
         :param Waveform osc2_waveform: waveform for oscillator 2
         :param float osc2_volume: relative volume of oscillator 2
         :param float osc2_freq_transpose: frequency transpose for oscillator 2
+        :param float osc2_detune: fine tuning of oscillator 2 (cents)
+        :param float osc2_pulse_width: duty cycle of square wave for oscillator 2 (0.01 - 0.99)
         :param float attack: fade-in time of each wave (seconds), prevents click noise at the start
         :param float release: fade-out time of each wave (seconds), prevents click noise at the end
         :param int rate: sampling rate
+        :param (int|None) seed: random seed for noise waveform, makes noise reproducible
         """
-        self._osc1 = Oscillator(waveform=osc1_waveform, volume=osc1_volume)
+        # spawn independent random streams so that osc1 and osc2 noise are not identical
+        osc1_seed, osc2_seed = np.random.SeedSequence(seed).spawn(2)
+        self._osc1 = Oscillator(waveform=osc1_waveform, volume=osc1_volume,
+                                pulse_width=osc1_pulse_width, seed=osc1_seed)
         self._use_osc2 = use_osc2
         if self._use_osc2:
-            self._osc2 = Oscillator(waveform=osc2_waveform, volume=osc2_volume, freq_transpose=osc2_freq_transpose)
+            self._osc2 = Oscillator(waveform=osc2_waveform, volume=osc2_volume,
+                                    freq_transpose=osc2_freq_transpose * 2 ** (osc2_detune / 1200.0),
+                                    pulse_width=osc2_pulse_width, seed=osc2_seed)
         else:
             self._osc2 = None
         self._attack = max(0.0, attack)

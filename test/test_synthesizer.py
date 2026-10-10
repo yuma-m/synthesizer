@@ -5,13 +5,14 @@ import scipy.signal
 from synthesizer import Oscillator, Synthesizer, Waveform
 
 RATE = 16000
+PERIODIC_WAVEFORMS = [w for w in Waveform if w is not Waveform.noise]
 
 
 def _phases(frequency, length, rate=RATE):
     return np.cumsum(2.0 * np.pi * frequency / rate * np.ones(int(rate * length)))
 
 
-@pytest.mark.parametrize("waveform", list(Waveform))
+@pytest.mark.parametrize("waveform", PERIODIC_WAVEFORMS)
 def test_constant_wave(waveform):
     synthesizer = Synthesizer(osc1_waveform=waveform, osc1_volume=1.0, use_osc2=False, rate=RATE)
     wave = synthesizer.generate_constant_wave(440.0, 1.0)
@@ -55,6 +56,60 @@ def test_oscillator_does_not_modify_phases():
     original = phases.copy()
     Oscillator(waveform=Waveform.sine, volume=1.0, freq_transpose=2.0).generate_wave(phases)
     np.testing.assert_array_equal(phases, original)
+
+
+@pytest.mark.parametrize("pulse_width", [0.1, 0.25, 0.75])
+def test_oscillator_pulse_width(pulse_width):
+    phases = _phases(440.0, 0.1)
+    osc = Oscillator(waveform=Waveform.square, volume=1.0, pulse_width=pulse_width)
+    np.testing.assert_allclose(osc.generate_wave(phases), scipy.signal.square(phases, duty=pulse_width))
+
+
+@pytest.mark.parametrize("pulse_width, expected", [
+    (-1.0, 0.01),
+    (0.0, 0.01),
+    (0.5, 0.5),
+    (1.0, 0.99),
+])
+def test_oscillator_pulse_width_is_clamped(pulse_width, expected):
+    assert Oscillator(waveform=Waveform.square, volume=1.0, pulse_width=pulse_width).pulse_width == expected
+
+
+def test_pulse_width_does_not_affect_other_waveforms():
+    phases = _phases(440.0, 0.1)
+    osc = Oscillator(waveform=Waveform.sawtooth, volume=1.0, pulse_width=0.2)
+    np.testing.assert_allclose(osc.generate_wave(phases), scipy.signal.sawtooth(phases))
+
+
+def test_oscillator_noise():
+    phases = _phases(440.0, 1.0)
+    wave = Oscillator(waveform=Waveform.noise, volume=0.5, seed=1).generate_wave(phases)
+    assert wave.size == phases.size
+    assert np.abs(wave).max() <= 0.5
+    assert np.abs(wave).max() > 0.49
+    assert wave.std() == pytest.approx(0.5 / np.sqrt(3.0), rel=0.05)
+
+
+def test_noise_is_reproducible_with_seed():
+    def generate(seed):
+        synthesizer = Synthesizer(osc1_waveform=Waveform.noise, rate=RATE, seed=seed)
+        return synthesizer.generate_constant_wave(440.0, 1.0)
+
+    np.testing.assert_array_equal(generate(1), generate(1))
+    assert not np.array_equal(generate(1), generate(2))
+
+
+def test_noise_differs_between_oscillators():
+    synthesizer = Synthesizer(osc1_waveform=Waveform.noise, use_osc2=True, osc2_waveform=Waveform.noise,
+                              osc2_volume=1.0, rate=RATE, seed=1)
+    phases = _phases(440.0, 1.0)
+    assert not np.array_equal(synthesizer._osc1.generate_wave(phases), synthesizer._osc2.generate_wave(phases))
+
+
+def test_noise_differs_between_notes():
+    synthesizer = Synthesizer(osc1_waveform=Waveform.noise, rate=RATE, seed=1)
+    assert not np.array_equal(synthesizer.generate_constant_wave(440.0, 1.0),
+                              synthesizer.generate_constant_wave(440.0, 1.0))
 
 
 def test_oscillator_unknown_waveform():
@@ -117,6 +172,33 @@ def test_osc2_default_parameters():
     wave = synthesizer.generate_constant_wave(440.0, 1.0)
     phases = _phases(440.0, 1.0)
     expected = (np.sin(phases) + 0.3 * np.sin(phases * 2.0)) / 1.3
+    np.testing.assert_allclose(wave, expected)
+
+
+@pytest.mark.parametrize("detune, ratio", [
+    (1200.0, 2.0),
+    (-1200.0, 0.5),
+    (100.0, 2 ** (1 / 12.0)),
+    (0.0, 1.0),
+])
+def test_osc2_detune(detune, ratio):
+    synthesizer = Synthesizer(
+        osc1_volume=0.0, use_osc2=True, osc2_volume=1.0, osc2_freq_transpose=1.5,
+        osc2_detune=detune, attack=0.0, release=0.0, rate=RATE,
+    )
+    wave = synthesizer.generate_constant_wave(440.0, 1.0)
+    np.testing.assert_allclose(wave, np.sin(_phases(440.0, 1.0) * 1.5 * ratio), atol=1e-9)
+
+
+def test_osc_pulse_width_parameters():
+    synthesizer = Synthesizer(
+        osc1_waveform=Waveform.square, osc1_pulse_width=0.2,
+        use_osc2=True, osc2_waveform=Waveform.square, osc2_volume=1.0, osc2_pulse_width=0.7,
+        attack=0.0, release=0.0, rate=RATE,
+    )
+    wave = synthesizer.generate_constant_wave(440.0, 1.0)
+    phases = _phases(440.0, 1.0)
+    expected = (scipy.signal.square(phases, duty=0.2) + scipy.signal.square(phases * 2.0, duty=0.7)) / 2.0
     np.testing.assert_allclose(wave, expected)
 
 
