@@ -37,6 +37,9 @@ class Player(object):
         if neither device_name nor device_index is specified,
         default output device will be opened.
 
+        devices without output channels (e.g. microphones) are ignored
+        when searching by device_name.
+
         :param str device_name: part of device name (ex: hw:0,0)
         :param int device_index: index of device
         """
@@ -45,13 +48,16 @@ class Player(object):
         if device_name:
             for n in range(self._pyaudio.get_device_count()):
                 dev = self._pyaudio.get_device_info_by_index(n)
-                if dev["name"].find(device_name) >= 0:
+                if dev["name"].find(device_name) >= 0 and dev["maxOutputChannels"] > 0:
                     device = dev
                     break
             else:
-                raise RuntimeError("audio device {} not found".format(device_name))
+                raise RuntimeError("audio output device {} not found".format(device_name))
         elif device_index >= 0:
             device = self._pyaudio.get_device_info_by_index(device_index)
+            if device["maxOutputChannels"] <= 0:
+                raise RuntimeError("audio device {} ({}) has no output channels".format(
+                    device_index, device["name"]))
         else:
             device = self._pyaudio.get_default_output_device_info()
 
@@ -76,9 +82,14 @@ class Player(object):
     def close_stream(self):
         u""" close audio output stream if opened """
         if self._stream:
-            self._stream.stop_stream()
-            self._stream.close()
-            self._stream = None
+            try:
+                self._stream.stop_stream()
+                self._stream.close()
+            except OSError:
+                # PyAudio may have already closed the stream after an I/O error
+                pass
+            finally:
+                self._stream = None
 
     def close(self):
         u""" close audio output stream and release PyAudio resources """

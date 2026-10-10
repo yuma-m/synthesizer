@@ -22,6 +22,8 @@ def test_enumerate_device(fake_pyaudio, capsys):
         'index: 00, name: "Built-in Microphone", rate: 44100',
         'index: 01, name: "Built-in Output", rate: 44100',
         'index: 02, name: "UA-25EX 44.1kHz", rate: 48000',
+        'index: 03, name: "MPM-4000U", rate: 44100',
+        'index: 04, name: "MPM-4000U", rate: 44100',
     ]
 
 
@@ -51,14 +53,30 @@ def test_open_stream_by_device_name(fake_pyaudio):
 
 def test_open_stream_by_device_index(fake_pyaudio):
     player = Player()
-    player.open_stream(device_index=0)
-    assert player._stream.kwargs["output_device_index"] == 0
+    player.open_stream(device_index=2)
+    assert player._stream.kwargs["output_device_index"] == 2
+
+
+def test_open_stream_by_input_only_device_index(fake_pyaudio):
+    with pytest.raises(RuntimeError):
+        Player().open_stream(device_index=0)
+
+
+def test_open_stream_by_device_name_skips_input_only_device(fake_pyaudio):
+    player = Player()
+    player.open_stream(device_name="MPM-4000U")
+    assert player._stream.kwargs["output_device_index"] == 4
+
+
+def test_open_stream_by_input_only_device_name(fake_pyaudio):
+    with pytest.raises(RuntimeError):
+        Player().open_stream(device_name="Microphone")
 
 
 def test_open_stream_device_name_takes_precedence(fake_pyaudio):
     player = Player()
-    player.open_stream(device_name="Microphone", device_index=2)
-    assert player._stream.kwargs["output_device_index"] == 0
+    player.open_stream(device_name="Built-in", device_index=2)
+    assert player._stream.kwargs["output_device_index"] == 1
 
 
 def test_open_stream_unknown_device_name(fake_pyaudio):
@@ -117,6 +135,20 @@ def test_context_manager(fake_pyaudio):
         player.open_stream()
         stream = player._stream
     assert stream.closed
+    assert pa.terminated
+
+
+def test_close_already_closed_stream(fake_pyaudio):
+    player = Player()
+    pa = player._pyaudio
+    player.open_stream()
+
+    def stream_not_open():
+        raise OSError("Stream not open")
+
+    player._stream.stop_stream = stream_not_open
+    player.close()
+    assert player._stream is None
     assert pa.terminated
 
 
