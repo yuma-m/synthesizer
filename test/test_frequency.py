@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from nose.tools import assert_almost_equal
-from parameterized import parameterized
+import pytest
 
 from synthesizer.frequency import frequency_from_scale
 
 
-@parameterized([
+@pytest.mark.parametrize("scale, frequency", [
     ("A0", 27.5),
     ("A#0", 29.135),
     ("Bb0", 29.135),
@@ -30,4 +29,10 @@ from synthesizer.frequency import frequency_from_scale
     ("E5", 659.255),
 ])
 def test_frequency_from_scale(scale, frequency):
-    assert_almost_equal(frequency_from_scale(scale), frequency, places=3)
+    assert frequency_from_scale(scale) == pytest.approx(frequency, abs=1e-3)
+
+
+@pytest.mark.parametrize("scale", ["H4", "Cb4", "X1"])
+def test_frequency_from_scale_unknown_note(scale):
+    with pytest.raises(ValueError):
+        frequency_from_scale(scale)
