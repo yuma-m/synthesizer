@@ -63,6 +63,21 @@ You can use [PyChord](https://github.com/yuma-m/pychord) to handle chords easily
 >>> player.play_wave(synthesizer.generate_chord(chord.components_with_pitch(root_pitch=3), 3.0))
 ```
 
+### Noise, pulse width and detune
+
+```python
+# White noise (pass seed to make it reproducible)
+>>> synthesizer = Synthesizer(osc1_waveform=Waveform.noise, seed=42)
+
+# Square wave with 25% duty cycle
+>>> synthesizer = Synthesizer(osc1_waveform=Waveform.square, osc1_pulse_width=0.25)
+
+# Detune oscillator 2 by +7 cents for a thicker sound
+>>> synthesizer = Synthesizer(osc1_waveform=Waveform.sawtooth, use_osc2=True,
+...                           osc2_waveform=Waveform.sawtooth, osc2_volume=1.0,
+...                           osc2_freq_transpose=1.0, osc2_detune=7.0)
+```
+
 ### Attack and release
 
 Each generated wave fades in and out (10 ms by default) to prevent click noise between notes.
