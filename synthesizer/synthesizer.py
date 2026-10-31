@@ -1,6 +1,7 @@
+from enum import Enum
+
 import numpy as np
 import scipy.signal
-from enum import Enum
 
 from .filter import Filter
 from .frequency import frequency_from_scale
@@ -62,7 +63,7 @@ class Oscillator:
         elif self._waveform is Waveform.noise:
             # white noise does not depend on phases
             return self._rng.uniform(-1.0, 1.0, np.shape(phases))
-        raise TypeError("unknown waveform: {}".format(self._waveform))
+        raise TypeError(f"unknown waveform: {self._waveform}")
 
     def generate_wave(self, phases):
         phases = np.copy(phases) * self._freq_transpose

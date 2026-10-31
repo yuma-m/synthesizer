@@ -1,5 +1,6 @@
 import sys
 import types
+from typing import Any, ClassVar
 
 import pytest
 
@@ -23,7 +24,7 @@ class FakeStream:
 
 class FakePyAudio:
 
-    devices = [
+    devices: ClassVar[list[dict[str, Any]]] = [
         {"index": 0, "name": "Built-in Microphone", "defaultSampleRate": 44100.0,
          "maxInputChannels": 2, "maxOutputChannels": 0},
         {"index": 1, "name": "Built-in Output", "defaultSampleRate": 44100.0,

@@ -4,7 +4,6 @@ import os
 
 from synthesizer import Synthesizer, Waveform, Writer
 
-
 BASE = 261.626  # C4
 DIR = os.path.dirname(os.path.abspath(__file__))
 

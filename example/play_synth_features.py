@@ -39,7 +39,7 @@ def main():
     player.open_stream()
 
     for name, params in PRESETS.items():
-        print("play {}".format(name))
+        print(f"play {name}")
         synthesizer = Synthesizer(**params)
         if params["osc1_waveform"] is Waveform.noise:
             for _ in range(8):

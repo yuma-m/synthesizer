@@ -1,6 +1,7 @@
+from enum import Enum
+
 import numpy as np
 import scipy.signal
-from enum import Enum
 
 MIN_CUTOFF = 10.0
 MIN_RESONANCE = 0.1
@@ -27,7 +28,7 @@ class Filter:
 
     def __init__(self, filter_type, cutoff=1000.0, resonance=0.707, rate=44100):
         if not isinstance(filter_type, FilterType):
-            raise TypeError("unknown filter type: {}".format(filter_type))
+            raise TypeError(f"unknown filter type: {filter_type}")
         self._filter_type = filter_type
         self._rate = rate
         self._cutoff = self._clamp_cutoff(cutoff)
