@@ -36,7 +36,7 @@ jobs:
       if: runner.os == 'macOS'
       run: brew install portaudio
     - name: Set up uv
-      uses: astral-sh/setup-uv@v10
+      uses: astral-sh/setup-uv@v10.3.3
       with:
         python-version: ${{ matrix.python-version }}
         enable-cache: true
@@ -53,7 +53,7 @@ jobs:
         # setuptools-scm derives the version from the tag
         fetch-depth: 0
     - name: Set up uv
-      uses: astral-sh/setup-uv@v10
+      uses: astral-sh/setup-uv@v10.3.3
     - name: Build sdist and wheel
       run: uv build
     - name: Check distributions
