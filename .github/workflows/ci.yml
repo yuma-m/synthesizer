@@ -22,11 +22,14 @@ jobs:
       with:
         enable-cache: true
     - name: Install dependencies
-      run: uv sync --locked --only-group lint
+      # mypy needs the runtime dependencies (numpy, scipy) to check the package
+      run: uv sync --locked --no-default-groups --group lint
     - name: Lint
       run: uv run --no-sync ruff check --output-format=github .
     - name: Check formatting
       run: uv run --no-sync ruff format --check .
+    - name: Type check
+      run: uv run --no-sync mypy
 
   test:
     name: test (${{ matrix.os }}, Python ${{ matrix.python-version }})

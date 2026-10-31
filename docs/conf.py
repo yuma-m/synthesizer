@@ -17,6 +17,7 @@ version = ".".join(release.split(".")[:2])
 
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
 ]
@@ -26,6 +27,12 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 language = "en"
 
 autodoc_member_order = "bysource"
+autodoc_typehints = "description"
+autodoc_type_aliases = {"Wave": "synthesizer.utils.Wave"}
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable", None),
+}
 todo_include_todos = True
 
 # -- Options for HTML output -------------------------------------------------

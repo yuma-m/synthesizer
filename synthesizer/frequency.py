@@ -2,7 +2,7 @@ import re
 
 A1_FREQ = 55.0
 
-BASE_FREQUENCY = {
+BASE_FREQUENCY: dict[str, float] = {
     "C": A1_FREQ * 2 ** (-9 / 12.0),
     "C#": A1_FREQ * 2 ** (-8 / 12.0),
     "Db": A1_FREQ * 2 ** (-8 / 12.0),
@@ -25,11 +25,10 @@ BASE_FREQUENCY = {
 _SCALE_PATTERN = re.compile(r"^([A-G][#b]?)(-?\d+)$")
 
 
-def frequency_from_scale(scale):
+def frequency_from_scale(scale: str) -> float:
     """Calculate frequency from pitch
 
-    :param str scale: e.g. C4, Ab3, D#5
-    :rtype: float
+    :param scale: e.g. C4, Ab3, D#5
     :return: Frequency of pitch
     """
     match = _SCALE_PATTERN.match(scale)
@@ -38,4 +37,4 @@ def frequency_from_scale(scale):
     base, octave = match.group(1), int(match.group(2))
     if base not in BASE_FREQUENCY:
         raise ValueError(f"Unknown note: {base}")
-    return BASE_FREQUENCY[base] * 2 ** (octave - 1)
+    return BASE_FREQUENCY[base] * 2.0 ** (octave - 1)

@@ -1,27 +1,37 @@
-from .utils import to_int16
+from types import TracebackType
+from typing import Any, Self
+
+from .utils import Wave, to_int16
 
 
 class Player:
-    def __init__(self, rate=44100):
+    def __init__(self, rate: int = 44100) -> None:
+        # PyAudio is optional and untyped
+        self._pyaudio: Any = None
+        self._stream: Any = None
         try:
             import pyaudio
 
             self._pyaudio = pyaudio.PyAudio()
             self._format = pyaudio.paInt16
         except ImportError:
-            self._pyaudio = None
-        self._stream = None
+            pass
         # TODO: support stereo channels
         self._channels = 1
         self._rate = rate
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         self.close()
 
-    def enumerate_device(self):
+    def enumerate_device(self) -> None:
         if not self._pyaudio:
             raise ImportError("Failed to import pyaudio, please install pyaudio")
         for n in range(self._pyaudio.get_device_count()):
@@ -29,7 +39,7 @@ class Player:
             name, rate = device["name"], int(device["defaultSampleRate"])
             print(f'index: {n:02d}, name: "{name}", rate: {rate:5d}')
 
-    def open_stream(self, device_name=None, device_index=-1):
+    def open_stream(self, device_name: str | None = None, device_index: int = -1) -> None:
         """open audio output stream
 
         if neither device_name nor device_index is specified,
@@ -38,8 +48,8 @@ class Player:
         devices without output channels (e.g. microphones) are ignored
         when searching by device_name.
 
-        :param str device_name: part of device name (ex: hw:0,0)
-        :param int device_index: index of device
+        :param device_name: part of device name (ex: hw:0,0)
+        :param device_index: index of device
         """
         if not self._pyaudio:
             raise ImportError("Failed to import pyaudio, please install pyaudio")
@@ -67,16 +77,16 @@ class Player:
             output=True,
         )
 
-    def play_wave(self, wave):
+    def play_wave(self, wave: Wave) -> None:
         """play normalized wave
 
-        :param numpy.array wave: normalized wave
+        :param wave: normalized wave
         """
         if not self._stream:
             raise RuntimeError("audio stream is not opened, please call open_stream() first.")
         self._stream.write(to_int16(wave).tobytes())
 
-    def close_stream(self):
+    def close_stream(self) -> None:
         """close audio output stream if opened"""
         if self._stream:
             try:
@@ -88,7 +98,7 @@ class Player:
             finally:
                 self._stream = None
 
-    def close(self):
+    def close(self) -> None:
         """close audio output stream and release PyAudio resources"""
         self.close_stream()
         if self._pyaudio:

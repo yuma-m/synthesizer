@@ -1,7 +1,10 @@
-from enum import Enum
+from enum import StrEnum
 
 import numpy as np
 import scipy.signal
+from numpy.typing import ArrayLike, NDArray
+
+from .utils import Wave
 
 MIN_CUTOFF = 10.0
 MIN_RESONANCE = 0.1
@@ -9,7 +12,7 @@ MIN_RESONANCE = 0.1
 BLOCK_SIZE = 64
 
 
-class FilterType(Enum):
+class FilterType(StrEnum):
     lowpass = "lowpass"
     highpass = "highpass"
     bandpass = "bandpass"
@@ -20,37 +23,39 @@ class Filter:
 
     Coefficients follow the Audio EQ Cookbook by Robert Bristow-Johnson.
 
-    :param FilterType _filter_type: type of filter
-    :param float _cutoff: cutoff frequency (Hz)
-    :param float _resonance: resonance as Q factor (0.707 gives a flat response)
-    :param int _rate: sampling rate
+    :param filter_type: type of filter
+    :param cutoff: cutoff frequency (Hz)
+    :param resonance: resonance as Q factor (0.707 gives a flat response)
+    :param rate: sampling rate
     """
 
-    def __init__(self, filter_type, cutoff=1000.0, resonance=0.707, rate=44100):
+    def __init__(
+        self, filter_type: FilterType, cutoff: float = 1000.0, resonance: float = 0.707, rate: int = 44100
+    ) -> None:
         if not isinstance(filter_type, FilterType):
             raise TypeError(f"unknown filter type: {filter_type}")
         self._filter_type = filter_type
         self._rate = rate
-        self._cutoff = self._clamp_cutoff(cutoff)
+        self._cutoff = float(self._clamp_cutoff(cutoff))
         self._resonance = max(MIN_RESONANCE, resonance)
 
     @property
-    def cutoff(self):
+    def cutoff(self) -> float:
         return self._cutoff
 
     @property
-    def resonance(self):
+    def resonance(self) -> float:
         return self._resonance
 
-    def _clamp_cutoff(self, cutoff):
-        return np.clip(cutoff, MIN_CUTOFF, 0.45 * self._rate)
+    def _clamp_cutoff(self, cutoff: ArrayLike) -> NDArray[np.float64]:
+        return np.clip(np.asarray(cutoff, dtype=np.float64), MIN_CUTOFF, 0.45 * self._rate)
 
-    def _coefficients(self, cutoff):
+    def _coefficients(self, cutoff: NDArray[np.float64]) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
         """biquad coefficients for scalar or array of cutoff frequencies
 
         :return: (b, a) whose last axis holds the 3 coefficients
         """
-        w0 = 2.0 * np.pi * np.asarray(cutoff, dtype=float) / self._rate
+        w0 = 2.0 * np.pi * cutoff / self._rate
         cos_w0 = np.cos(w0)
         alpha = np.sin(w0) / (2.0 * self._resonance)
         if self._filter_type is FilterType.lowpass:
@@ -64,28 +69,25 @@ class Filter:
         a0 = a[0]
         return np.stack(b, axis=-1) / a0[..., None], np.stack(a, axis=-1) / a0[..., None]
 
-    def apply(self, wave, cutoff=None):
+    def apply(self, wave: Wave, cutoff: float | NDArray[np.float64] | None = None) -> Wave:
         """filter wave
 
-        :param numpy.array wave: wave to be filtered
-        :param (float|numpy.array|None) cutoff: cutoff frequency, or cutoff per sample for modulation.
-                                                cutoff of the filter is used if None
-        :rtype: numpy.array
+        :param wave: wave to be filtered
+        :param cutoff: cutoff frequency, or cutoff per sample for modulation.
+                       cutoff of the filter is used if None
         :return: filtered wave (resonance may push peaks beyond [-1.0, 1.0])
         """
-        if cutoff is None:
-            cutoff = self._cutoff
-        cutoff = self._clamp_cutoff(cutoff)
-        if np.ndim(cutoff) == 0:
-            b, a = self._coefficients(cutoff)
+        cutoffs = self._clamp_cutoff(self._cutoff if cutoff is None else cutoff)
+        if cutoffs.ndim == 0:
+            b, a = self._coefficients(cutoffs)
             return scipy.signal.lfilter(b, a, wave)
-        if np.shape(cutoff) != np.shape(wave):
+        if cutoffs.shape != wave.shape:
             raise ValueError("cutoff must have the same shape as wave")
         filtered = np.empty_like(wave, dtype=float)
         starts = np.arange(0, wave.size, BLOCK_SIZE)
         if starts.size == 0:
             return filtered
-        b, a = self._coefficients(np.add.reduceat(cutoff, starts) / np.diff(np.append(starts, wave.size)))
+        b, a = self._coefficients(np.add.reduceat(cutoffs, starts) / np.diff(np.append(starts, wave.size)))
         state = np.zeros(2)
         for i, start in enumerate(starts):
             block = slice(start, start + BLOCK_SIZE)

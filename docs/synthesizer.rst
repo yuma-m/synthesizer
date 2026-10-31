@@ -48,6 +48,3 @@ Module contents
 ---------------
 
 .. automodule:: synthesizer
-    :members:
-    :undoc-members:
-    :show-inheritance:
