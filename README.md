@@ -1,7 +1,7 @@
 # Python synthesizer
 
 [![CI](https://github.com/yuma-m/synthesizer/actions/workflows/ci.yml/badge.svg)](https://github.com/yuma-m/synthesizer/actions/workflows/ci.yml)
-[![Documentation Status](https://readthedocs.org/projects/synthesizer/badge/?version=latest)](https://synthesizer.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/synthesizer/badge/?version=latest)](https://synthesizer.readthedocs.io/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/synthesizer)](https://pypi.org/project/synthesizer/)
 
 A simple virtual analog synthesizer written in Python.
@@ -226,6 +226,7 @@ uv run pytest
 uv run ruff check .
 uv run ruff format .
 uv run mypy
+uv run sphinx-build -W -b html docs docs/_build/html
 ```
 
 ## Supported OS
