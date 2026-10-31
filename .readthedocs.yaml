@@ -5,7 +5,7 @@ version: 2
 build:
   os: ubuntu-lts-latest
   tools:
-    python: "3.13"
+    python: "3.14"
   jobs:
     # setuptools-scm needs the full history and tags to derive the version
     post_checkout:

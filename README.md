@@ -225,6 +225,7 @@ uv sync --all-groups --extra audio
 uv run pytest
 uv run ruff check .
 uv run ruff format .
+uv run mypy
 ```
 
 ## Supported OS

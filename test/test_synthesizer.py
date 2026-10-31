@@ -375,6 +375,7 @@ def test_chord_envelope_starts_and_ends_at_zero():
         ["C4", "E4", "G4"],
         ["C4", 329.628, "G4", "Bb4"],
         [440.0],
+        ("C4", "E4", "G4"),
     ],
 )
 def test_generate_chord(freqs):
@@ -386,7 +387,7 @@ def test_generate_chord(freqs):
     assert np.abs(wave).max() <= 1.0 + 1e-9
 
 
-@pytest.mark.parametrize("freqs", [[], None, (440.0, 550.0), 440.0, "C4"])
+@pytest.mark.parametrize("freqs", [[], (), None, 440.0, "C4"])
 def test_generate_chord_invalid_freqs(freqs):
     synthesizer = Synthesizer(rate=RATE)
     with pytest.raises(ValueError):

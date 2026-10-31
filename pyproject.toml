@@ -24,6 +24,7 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3.15",
     "Topic :: Multimedia :: Sound/Audio :: Sound Synthesis",
+    "Typing :: Typed",
 ]
 dependencies = [
     "numpy>=1.23.2",
@@ -35,7 +36,11 @@ audio = ["PyAudio>=0.2.14"]
 
 [dependency-groups]
 test = ["pytest>=8", "pytest-cov>=6"]
-lint = ["ruff>=0.17.3"]
+lint = [
+    "mypy>=2.4.1",
+    "ruff>=0.17.3",
+    "scipy-stubs>=1.17.1.5",
+]
 dev = [{ include-group = "test" }, { include-group = "lint" }]
 
 [project.urls]
@@ -56,6 +61,14 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "NPY"]
+
+[tool.mypy]
+files = ["synthesizer"]
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["pyaudio"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["test"]
