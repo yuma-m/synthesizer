@@ -228,14 +228,6 @@ uv run ruff format .
 uv run mypy
 ```
 
-### Releasing
-
-Run the [Release workflow](https://github.com/yuma-m/synthesizer/actions/workflows/release.yml) from GitHub Actions
-and choose which part of the version to bump.
-It creates the tag and GitHub release, then publishes the package to PyPI with
-[Trusted Publishing](https://docs.pypi.org/trusted-publishers/).
-The version is derived from the tag by setuptools-scm.
-
 ## Supported OS
 
 - macOS
