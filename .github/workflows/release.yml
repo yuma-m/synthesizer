@@ -13,7 +13,7 @@ on:
           - major
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release
@@ -22,6 +22,8 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
       tag: ${{ steps.version.outputs.tag }}
     steps:
@@ -58,11 +60,41 @@ jobs:
         SHA: ${{ steps.version.outputs.sha }}
       run: gh release create "$TAG" --target "$SHA" --title "$TAG" --generate-notes
 
-  # Tags created with GITHUB_TOKEN do not trigger other workflows,
-  # so call the deploy workflow explicitly.
-  deploy:
+  build:
     needs: release
-    uses: ./.github/workflows/deploy.yml
-    with:
-      ref: ${{ needs.release.outputs.tag }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        ref: ${{ needs.release.outputs.tag }}
+        # setuptools-scm derives the version from the tag
+        fetch-depth: 0
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v10.3.3
+    - name: Build sdist and wheel
+      run: uv build
+    - name: Check distributions
+      run: uvx twine check --strict dist/*
+    - uses: actions/upload-artifact@v7
+      with:
+        name: dist
+        path: dist/
+
+  # Publishes with PyPI Trusted Publishing (OIDC), so no API token is needed.
+  # The trusted publisher on PyPI must point at this workflow (release.yml)
+  # and the "pypi" environment.
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/synthesizer/
+    permissions:
+      id-token: write
+    steps:
+    - uses: actions/download-artifact@v8
+      with:
+        name: dist
+        path: dist/
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
