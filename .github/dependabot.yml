@@ -1,9 +1,16 @@
 version: 2
 updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      python:
+        patterns:
+          - "*"
+
   - package-ecosystem: "pip"
-    directories:
-      - "/"
-      - "/docs"
+    directory: "/docs"
     schedule:
       interval: "monthly"
     groups:
