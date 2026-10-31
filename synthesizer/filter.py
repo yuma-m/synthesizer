@@ -16,7 +16,7 @@ class FilterType(Enum):
 
 
 class Filter:
-    """ Virtual 2-pole (12 dB/oct) resonant filter
+    """Virtual 2-pole (12 dB/oct) resonant filter
 
     Coefficients follow the Audio EQ Cookbook by Robert Bristow-Johnson.
 
@@ -46,7 +46,7 @@ class Filter:
         return np.clip(cutoff, MIN_CUTOFF, 0.45 * self._rate)
 
     def _coefficients(self, cutoff):
-        """ biquad coefficients for scalar or array of cutoff frequencies
+        """biquad coefficients for scalar or array of cutoff frequencies
 
         :return: (b, a) whose last axis holds the 3 coefficients
         """
@@ -65,7 +65,7 @@ class Filter:
         return np.stack(b, axis=-1) / a0[..., None], np.stack(a, axis=-1) / a0[..., None]
 
     def apply(self, wave, cutoff=None):
-        """ filter wave
+        """filter wave
 
         :param numpy.array wave: wave to be filtered
         :param (float|numpy.array|None) cutoff: cutoff frequency, or cutoff per sample for modulation.

@@ -26,7 +26,7 @@ _SCALE_PATTERN = re.compile(r"^([A-G][#b]?)(-?\d+)$")
 
 
 def frequency_from_scale(scale):
-    """ Calculate frequency from pitch
+    """Calculate frequency from pitch
 
     :param str scale: e.g. C4, Ab3, D#5
     :rtype: float

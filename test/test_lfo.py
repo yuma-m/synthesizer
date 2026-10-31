@@ -8,7 +8,7 @@ RATE = 16000
 
 
 def _instantaneous_frequency(wave):
-    """ frequency of a sine wave estimated from the analytic signal """
+    """frequency of a sine wave estimated from the analytic signal"""
     phases = np.unwrap(np.angle(scipy.signal.hilbert(wave)))
     return np.diff(phases) * RATE / (2.0 * np.pi)
 
@@ -56,8 +56,13 @@ def test_amp_depth_is_clamped(depth, expected):
 
 
 def test_cutoff_modulation():
-    kwargs = dict(osc1_waveform=Waveform.sawtooth, filter_type=FilterType.lowpass,
-                  filter_cutoff=800.0, filter_resonance=3.0, rate=RATE)
+    kwargs = dict(
+        osc1_waveform=Waveform.sawtooth,
+        filter_type=FilterType.lowpass,
+        filter_cutoff=800.0,
+        filter_resonance=3.0,
+        rate=RATE,
+    )
     static = Synthesizer(**kwargs).generate_constant_wave(220.0, 1.0)
     wave = Synthesizer(lfo_rate=2.0, lfo_cutoff_depth=2.0, **kwargs).generate_constant_wave(220.0, 1.0)
     assert np.isfinite(wave).all()
@@ -77,15 +82,16 @@ def test_sample_and_hold_lfo():
     lfo = synthesizer._lfo(RATE)
     assert np.unique(lfo).size == 4
     for i in range(4):
-        block = lfo[i * RATE // 4:(i + 1) * RATE // 4]
+        block = lfo[i * RATE // 4 : (i + 1) * RATE // 4]
         np.testing.assert_array_equal(block, block[0])
     assert np.abs(lfo).max() <= 1.0
 
 
 def test_sample_and_hold_lfo_is_reproducible():
     def generate(seed):
-        synthesizer = Synthesizer(lfo_waveform=Waveform.noise, lfo_rate=8.0, lfo_pitch_depth=200.0,
-                                  rate=RATE, seed=seed)
+        synthesizer = Synthesizer(
+            lfo_waveform=Waveform.noise, lfo_rate=8.0, lfo_pitch_depth=200.0, rate=RATE, seed=seed
+        )
         return synthesizer.generate_constant_wave(440.0, 1.0)
 
     np.testing.assert_array_equal(generate(1), generate(1))

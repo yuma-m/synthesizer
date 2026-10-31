@@ -12,11 +12,11 @@ def _sine(frequency, length=1.0, rate=RATE):
 
 
 def _gain(filter_, frequency):
-    """ RMS gain of steady-state response to a sine wave """
+    """RMS gain of steady-state response to a sine wave"""
     wave = _sine(frequency)
     filtered = filter_.apply(wave)
     # skip the transient at the beginning
-    return np.sqrt(np.mean(filtered[RATE // 2:] ** 2) / np.mean(wave[RATE // 2:] ** 2))
+    return np.sqrt(np.mean(filtered[RATE // 2 :] ** 2) / np.mean(wave[RATE // 2 :] ** 2))
 
 
 def test_lowpass():
@@ -91,13 +91,16 @@ def test_empty_wave():
     assert filter_.apply(np.zeros(0), cutoff=np.zeros(0)).size == 0
 
 
-@pytest.mark.parametrize("cutoff, expected", [
-    (-100.0, 10.0),
-    (5.0, 10.0),
-    (1000.0, 1000.0),
-    (8000.0, 0.45 * RATE),
-    (20000.0, 0.45 * RATE),
-])
+@pytest.mark.parametrize(
+    "cutoff, expected",
+    [
+        (-100.0, 10.0),
+        (5.0, 10.0),
+        (1000.0, 1000.0),
+        (8000.0, 0.45 * RATE),
+        (20000.0, 0.45 * RATE),
+    ],
+)
 def test_cutoff_is_clamped(cutoff, expected):
     assert Filter(FilterType.lowpass, cutoff=cutoff, rate=RATE).cutoff == expected
 
@@ -118,11 +121,19 @@ def test_synthesizer_without_filter_is_unchanged():
 
 
 def test_synthesizer_applies_filter_before_envelope():
-    synthesizer = Synthesizer(osc1_waveform=Waveform.sawtooth, filter_type=FilterType.lowpass,
-                              filter_cutoff=800.0, filter_resonance=2.0, attack=0.1, release=0.1, rate=RATE)
+    synthesizer = Synthesizer(
+        osc1_waveform=Waveform.sawtooth,
+        filter_type=FilterType.lowpass,
+        filter_cutoff=800.0,
+        filter_resonance=2.0,
+        attack=0.1,
+        release=0.1,
+        rate=RATE,
+    )
     raw = Synthesizer(osc1_waveform=Waveform.sawtooth, attack=0.0, release=0.0, rate=RATE)
     filtered = Filter(FilterType.lowpass, cutoff=800.0, resonance=2.0, rate=RATE).apply(
-        raw.generate_constant_wave(440.0, 1.0))
+        raw.generate_constant_wave(440.0, 1.0)
+    )
     expected = synthesizer._apply_envelope(filtered)
     np.testing.assert_allclose(synthesizer.generate_constant_wave(440.0, 1.0), expected)
 
