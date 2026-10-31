@@ -35,7 +35,8 @@ audio = ["PyAudio>=0.2.14"]
 
 [dependency-groups]
 test = ["pytest>=8", "pytest-cov>=6"]
-dev = [{ include-group = "test" }]
+lint = ["ruff>=0.17.3"]
+dev = [{ include-group = "test" }, { include-group = "lint" }]
 
 [project.urls]
 Homepage = "https://github.com/yuma-m/synthesizer"
@@ -48,6 +49,13 @@ Issues = "https://github.com/yuma-m/synthesizer/issues"
 
 [tool.setuptools.packages.find]
 include = ["synthesizer*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "NPY"]
 
 [tool.pytest.ini_options]
 testpaths = ["test"]

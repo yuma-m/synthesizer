@@ -44,5 +44,5 @@ def main():
     player.play_wave(synthesizer.generate_chord(chord, 1.0))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

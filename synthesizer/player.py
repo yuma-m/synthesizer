@@ -2,10 +2,10 @@ from .utils import to_int16
 
 
 class Player:
-
     def __init__(self, rate=44100):
         try:
             import pyaudio
+
             self._pyaudio = pyaudio.PyAudio()
             self._format = pyaudio.paInt16
         except ImportError:
@@ -26,11 +26,11 @@ class Player:
             raise ImportError("Failed to import pyaudio, please install pyaudio")
         for n in range(self._pyaudio.get_device_count()):
             device = self._pyaudio.get_device_info_by_index(n)
-            print('index: {index:02d}, name: "{name}", rate: {rate:5d}'.format(
-                index=n, name=device["name"], rate=int(device["defaultSampleRate"])))
+            name, rate = device["name"], int(device["defaultSampleRate"])
+            print(f'index: {n:02d}, name: "{name}", rate: {rate:5d}')
 
     def open_stream(self, device_name=None, device_index=-1):
-        """ open audio output stream
+        """open audio output stream
 
         if neither device_name nor device_index is specified,
         default output device will be opened.
@@ -50,12 +50,11 @@ class Player:
                     device = dev
                     break
             else:
-                raise RuntimeError("audio output device {} not found".format(device_name))
+                raise RuntimeError(f"audio output device {device_name} not found")
         elif device_index >= 0:
             device = self._pyaudio.get_device_info_by_index(device_index)
             if device["maxOutputChannels"] <= 0:
-                raise RuntimeError("audio device {} ({}) has no output channels".format(
-                    device_index, device["name"]))
+                raise RuntimeError(f"audio device {device_index} ({device['name']}) has no output channels")
         else:
             device = self._pyaudio.get_default_output_device_info()
 
@@ -69,7 +68,7 @@ class Player:
         )
 
     def play_wave(self, wave):
-        """ play normalized wave
+        """play normalized wave
 
         :param numpy.array wave: normalized wave
         """
@@ -78,7 +77,7 @@ class Player:
         self._stream.write(to_int16(wave).tobytes())
 
     def close_stream(self):
-        """ close audio output stream if opened """
+        """close audio output stream if opened"""
         if self._stream:
             try:
                 self._stream.stop_stream()
@@ -90,7 +89,7 @@ class Player:
                 self._stream = None
 
     def close(self):
-        """ close audio output stream and release PyAudio resources """
+        """close audio output stream and release PyAudio resources"""
         self.close_stream()
         if self._pyaudio:
             self._pyaudio.terminate()

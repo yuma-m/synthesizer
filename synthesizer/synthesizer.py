@@ -1,19 +1,20 @@
+from enum import Enum
+
 import numpy as np
 import scipy.signal
-from enum import Enum
 
 from .filter import Filter
 from .frequency import frequency_from_scale
 
 
 def _triangle(phases):
-    """ triangle wave with period 2*pi, rising from -1 at phase 0 to 1 at phase pi """
+    """triangle wave with period 2*pi, rising from -1 at phase 0 to 1 at phase pi"""
     cycle = np.mod(phases / (2.0 * np.pi), 1.0)
     return 1.0 - 4.0 * np.abs(cycle - 0.5)
 
 
 def _raised_cosine(size):
-    """ smooth ramp rising from 0 to 1, which causes less click noise than a linear ramp """
+    """smooth ramp rising from 0 to 1, which causes less click noise than a linear ramp"""
     return 0.5 - 0.5 * np.cos(np.linspace(0.0, np.pi, size))
 
 
@@ -26,14 +27,14 @@ class Waveform(Enum):
 
 
 class Oscillator:
-    """ Virtual oscillator object
+    """Virtual oscillator object
 
-     :param Waveform _waveform: waveform of oscillator
-     :param float _volume: amplitude of generated wave (0.0 - 1.0)
-     :param float _freq_transpose: transpose of frequency (for sub oscillator)
-     :param float _pulse_width: duty cycle of square wave (0.01 - 0.99)
-     :param numpy.random.Generator _rng: random generator for noise waveform
-     """
+    :param Waveform _waveform: waveform of oscillator
+    :param float _volume: amplitude of generated wave (0.0 - 1.0)
+    :param float _freq_transpose: transpose of frequency (for sub oscillator)
+    :param float _pulse_width: duty cycle of square wave (0.01 - 0.99)
+    :param numpy.random.Generator _rng: random generator for noise waveform
+    """
 
     def __init__(self, waveform, volume, freq_transpose=1.0, pulse_width=0.5, seed=None):
         self._waveform = waveform
@@ -62,7 +63,7 @@ class Oscillator:
         elif self._waveform is Waveform.noise:
             # white noise does not depend on phases
             return self._rng.uniform(-1.0, 1.0, np.shape(phases))
-        raise TypeError("unknown waveform: {}".format(self._waveform))
+        raise TypeError(f"unknown waveform: {self._waveform}")
 
     def generate_wave(self, phases):
         phases = np.copy(phases) * self._freq_transpose
@@ -70,21 +71,40 @@ class Oscillator:
 
 
 class Synthesizer:
-    """ Virtual analog synthesizer object
+    """Virtual analog synthesizer object
 
     :param Oscillator _osc1: main virtual oscillator
     :param (Oscillator|None) _osc2: sub virtual oscillator
     :param (Filter|None) _filter: virtual filter applied to the oscillators
     """
 
-    def __init__(self, osc1_waveform=Waveform.sine, osc1_volume=1.0, osc1_pulse_width=0.5,
-                 use_osc2=False, osc2_waveform=Waveform.sine,
-                 osc2_volume=0.3, osc2_freq_transpose=2.0, osc2_detune=0.0, osc2_pulse_width=0.5,
-                 filter_type=None, filter_cutoff=1000.0, filter_resonance=0.707,
-                 lfo_waveform=Waveform.sine, lfo_rate=5.0,
-                 lfo_pitch_depth=0.0, lfo_amp_depth=0.0, lfo_cutoff_depth=0.0,
-                 attack=0.01, decay=0.0, sustain=1.0, release=0.01, rate=44100, seed=None):
-        """ Constructor of Synthesizer
+    def __init__(
+        self,
+        osc1_waveform=Waveform.sine,
+        osc1_volume=1.0,
+        osc1_pulse_width=0.5,
+        use_osc2=False,
+        osc2_waveform=Waveform.sine,
+        osc2_volume=0.3,
+        osc2_freq_transpose=2.0,
+        osc2_detune=0.0,
+        osc2_pulse_width=0.5,
+        filter_type=None,
+        filter_cutoff=1000.0,
+        filter_resonance=0.707,
+        lfo_waveform=Waveform.sine,
+        lfo_rate=5.0,
+        lfo_pitch_depth=0.0,
+        lfo_amp_depth=0.0,
+        lfo_cutoff_depth=0.0,
+        attack=0.01,
+        decay=0.0,
+        sustain=1.0,
+        release=0.01,
+        rate=44100,
+        seed=None,
+    ):
+        """Constructor of Synthesizer
 
         :param Waveform osc1_waveform: waveform for oscillator 1
         :param float osc1_volume: relative volume of oscillator 1
@@ -114,13 +134,18 @@ class Synthesizer:
         """
         # spawn independent random streams so that osc1, osc2 and LFO noise are not identical
         osc1_seed, osc2_seed, lfo_seed = np.random.SeedSequence(seed).spawn(3)
-        self._osc1 = Oscillator(waveform=osc1_waveform, volume=osc1_volume,
-                                pulse_width=osc1_pulse_width, seed=osc1_seed)
+        self._osc1 = Oscillator(
+            waveform=osc1_waveform, volume=osc1_volume, pulse_width=osc1_pulse_width, seed=osc1_seed
+        )
         self._use_osc2 = use_osc2
         if self._use_osc2:
-            self._osc2 = Oscillator(waveform=osc2_waveform, volume=osc2_volume,
-                                    freq_transpose=osc2_freq_transpose * 2 ** (osc2_detune / 1200.0),
-                                    pulse_width=osc2_pulse_width, seed=osc2_seed)
+            self._osc2 = Oscillator(
+                waveform=osc2_waveform,
+                volume=osc2_volume,
+                freq_transpose=osc2_freq_transpose * 2 ** (osc2_detune / 1200.0),
+                pulse_width=osc2_pulse_width,
+                seed=osc2_seed,
+            )
         else:
             self._osc2 = None
         if filter_type is None:
@@ -150,7 +175,7 @@ class Synthesizer:
         return wave
 
     def _lfo(self, size):
-        """ LFO signal in [-1.0, 1.0], restarted at phase 0 for each wave """
+        """LFO signal in [-1.0, 1.0], restarted at phase 0 for each wave"""
         times = np.arange(size) / self._rate
         if self._lfo_waveform is Waveform.noise:
             # sample and hold: a new random value for each LFO cycle
@@ -159,15 +184,15 @@ class Synthesizer:
         return self._lfo_osc.generate_wave(2.0 * np.pi * self._lfo_rate * times)
 
     def _envelope(self, size):
-        """ ADSR envelope; release is applied multiplicatively so it starts from the current level """
+        """ADSR envelope; release is applied multiplicatively so it starts from the current level"""
         attack = min(int(self._rate * self._attack), size)
         decay = int(self._rate * self._decay)
         release = min(int(self._rate * self._release), size)
         envelope = np.full(size, self._sustain)
         envelope[:attack] = _raised_cosine(attack)
         # decay is cut off (not compressed) if the wave ends before it completes
-        decay_part = envelope[attack:attack + decay]
-        decay_part[:] = (1.0 - (1.0 - self._sustain) * _raised_cosine(decay))[:decay_part.size]
+        decay_part = envelope[attack : attack + decay]
+        decay_part[:] = (1.0 - (1.0 - self._sustain) * _raised_cosine(decay))[: decay_part.size]
         if release > 0:
             envelope[-release:] *= _raised_cosine(release)[::-1]
         return envelope
@@ -177,7 +202,7 @@ class Synthesizer:
         return wave
 
     def generate_constant_wave(self, frequency, length):
-        """ generate wave with constant frequency
+        """generate wave with constant frequency
 
         :param (float|str) frequency: frequency or scale of wave
         :param float length: length of wave (seconds)
@@ -205,7 +230,7 @@ class Synthesizer:
         return self._apply_envelope(wave)
 
     def generate_chord(self, freqs, length):
-        """ generate wave consists of multiple frequencies
+        """generate wave consists of multiple frequencies
 
         :param list[float] freqs: list of frequencies or scales
         :param float length: length of wave (seconds)

@@ -1,11 +1,11 @@
 import sys
 import types
+from typing import Any, ClassVar
 
 import pytest
 
 
 class FakeStream:
-
     def __init__(self, **kwargs):
         self.kwargs = kwargs
         self.written = []
@@ -22,19 +22,31 @@ class FakeStream:
 
 
 class FakePyAudio:
-
-    devices = [
-        {"index": 0, "name": "Built-in Microphone", "defaultSampleRate": 44100.0,
-         "maxInputChannels": 2, "maxOutputChannels": 0},
-        {"index": 1, "name": "Built-in Output", "defaultSampleRate": 44100.0,
-         "maxInputChannels": 0, "maxOutputChannels": 2},
-        {"index": 2, "name": "UA-25EX 44.1kHz", "defaultSampleRate": 48000.0,
-         "maxInputChannels": 2, "maxOutputChannels": 2},
+    devices: ClassVar[list[dict[str, Any]]] = [
+        {
+            "index": 0,
+            "name": "Built-in Microphone",
+            "defaultSampleRate": 44100.0,
+            "maxInputChannels": 2,
+            "maxOutputChannels": 0,
+        },
+        {
+            "index": 1,
+            "name": "Built-in Output",
+            "defaultSampleRate": 44100.0,
+            "maxInputChannels": 0,
+            "maxOutputChannels": 2,
+        },
+        {
+            "index": 2,
+            "name": "UA-25EX 44.1kHz",
+            "defaultSampleRate": 48000.0,
+            "maxInputChannels": 2,
+            "maxOutputChannels": 2,
+        },
         # A USB device exposed as separate input and output devices
-        {"index": 3, "name": "MPM-4000U", "defaultSampleRate": 44100.0,
-         "maxInputChannels": 2, "maxOutputChannels": 0},
-        {"index": 4, "name": "MPM-4000U", "defaultSampleRate": 44100.0,
-         "maxInputChannels": 0, "maxOutputChannels": 2},
+        {"index": 3, "name": "MPM-4000U", "defaultSampleRate": 44100.0, "maxInputChannels": 2, "maxOutputChannels": 0},
+        {"index": 4, "name": "MPM-4000U", "defaultSampleRate": 44100.0, "maxInputChannels": 0, "maxOutputChannels": 2},
     ]
     default_output_index = 1
 

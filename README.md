@@ -223,6 +223,8 @@ The project uses [uv](https://docs.astral.sh/uv/) to manage the development envi
 ```bash
 uv sync --all-groups --extra audio
 uv run pytest
+uv run ruff check .
+uv run ruff format .
 ```
 
 ## Supported OS

@@ -23,9 +23,9 @@ def main():
 
     for chord in chords:
         notes = chord.components_with_pitch(root_pitch=3)
-        print("Play {}".format(chord))
+        print(f"Play {chord}")
         player.play_wave(synthesizer.generate_chord(notes, 1.0))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

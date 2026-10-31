@@ -1,6 +1,7 @@
+from enum import Enum
+
 import numpy as np
 import scipy.signal
-from enum import Enum
 
 MIN_CUTOFF = 10.0
 MIN_RESONANCE = 0.1
@@ -15,7 +16,7 @@ class FilterType(Enum):
 
 
 class Filter:
-    """ Virtual 2-pole (12 dB/oct) resonant filter
+    """Virtual 2-pole (12 dB/oct) resonant filter
 
     Coefficients follow the Audio EQ Cookbook by Robert Bristow-Johnson.
 
@@ -27,7 +28,7 @@ class Filter:
 
     def __init__(self, filter_type, cutoff=1000.0, resonance=0.707, rate=44100):
         if not isinstance(filter_type, FilterType):
-            raise TypeError("unknown filter type: {}".format(filter_type))
+            raise TypeError(f"unknown filter type: {filter_type}")
         self._filter_type = filter_type
         self._rate = rate
         self._cutoff = self._clamp_cutoff(cutoff)
@@ -45,7 +46,7 @@ class Filter:
         return np.clip(cutoff, MIN_CUTOFF, 0.45 * self._rate)
 
     def _coefficients(self, cutoff):
-        """ biquad coefficients for scalar or array of cutoff frequencies
+        """biquad coefficients for scalar or array of cutoff frequencies
 
         :return: (b, a) whose last axis holds the 3 coefficients
         """
@@ -64,7 +65,7 @@ class Filter:
         return np.stack(b, axis=-1) / a0[..., None], np.stack(a, axis=-1) / a0[..., None]
 
     def apply(self, wave, cutoff=None):
-        """ filter wave
+        """filter wave
 
         :param numpy.array wave: wave to be filtered
         :param (float|numpy.array|None) cutoff: cutoff frequency, or cutoff per sample for modulation.
