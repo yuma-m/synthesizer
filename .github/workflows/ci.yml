@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
+        include:
+          - os: macos-latest
+            python-version: "3.15"
+
+    steps:
+    - uses: actions/checkout@v7
+    - name: Install PortAudio (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get -qq update
+        sudo apt-get install -y portaudio19-dev
+    - name: Install PortAudio (macOS)
+      if: runner.os == 'macOS'
+      run: brew install portaudio
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v10.3.3
+      with:
+        python-version: ${{ matrix.python-version }}
+        enable-cache: true
+    - name: Install dependencies
+      run: uv sync --locked --group test --extra audio
+    - name: Run tests
+      run: uv run pytest --cov
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        # setuptools-scm derives the version from the tag
+        fetch-depth: 0
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v10.3.3
+    - name: Build sdist and wheel
+      run: uv build
+    - name: Check distributions
+      run: uvx twine check --strict dist/*

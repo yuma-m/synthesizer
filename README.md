@@ -1,6 +1,6 @@
 # Python synthesizer
 
-[![Build Status](https://github.com/yuma-m/synthesizer/actions/workflows/build.yml/badge.svg)](https://github.com/yuma-m/synthesizer/actions/workflows/build.yml)
+[![CI](https://github.com/yuma-m/synthesizer/actions/workflows/ci.yml/badge.svg)](https://github.com/yuma-m/synthesizer/actions/workflows/ci.yml)
 [![Documentation Status](https://readthedocs.org/projects/synthesizer/badge/?version=latest)](https://synthesizer.readthedocs.io/en/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/synthesizer)](https://pypi.org/project/synthesizer/)
 
@@ -218,9 +218,11 @@ python example/play_synth_features.py
 
 ## Development
 
+The project uses [uv](https://docs.astral.sh/uv/) to manage the development environment.
+
 ```bash
-pip install -e ".[test,audio]"
-pytest
+uv sync --all-groups --extra audio
+uv run pytest
 ```
 
 ## Supported OS
@@ -230,7 +232,7 @@ pytest
 
 ## Supported versions
 
-- Python 3.10 and above
+- Python 3.11 and above
 
 ## Author
 

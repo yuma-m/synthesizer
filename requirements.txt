@@ -1,3 +1,0 @@
-numpy>=1.22
-PyAudio>=0.2.14
-scipy>=1.8
