@@ -226,6 +226,7 @@ uv run pytest
 uv run ruff check .
 uv run ruff format .
 uv run mypy
+uv run sphinx-build -W -b html docs docs/_build/html
 ```
 
 ## Supported OS

@@ -41,6 +41,12 @@ lint = [
     "ruff>=0.17.3",
     "scipy-stubs>=1.17.1.5",
 ]
+docs = [
+    # Sphinx 9 requires Python 3.12+; fall back to Sphinx 8.2 on Python 3.11
+    "sphinx>=8.2; python_version < '3.12'",
+    "sphinx>=9.1.0; python_version >= '3.12'",
+    "sphinx-rtd-theme>=3.1.0",
+]
 dev = [{ include-group = "test" }, { include-group = "lint" }]
 
 [project.urls]

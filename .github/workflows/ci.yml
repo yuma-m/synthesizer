@@ -63,6 +63,24 @@ jobs:
     - name: Run tests
       run: uv run pytest --cov
 
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        # setuptools-scm derives the version from the tag
+        fetch-depth: 0
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v10.3.3
+      with:
+        python-version: "3.14"
+        enable-cache: true
+    - name: Install dependencies
+      run: uv sync --locked --no-default-groups --group docs
+    - name: Build docs
+      # Mirror Read the Docs' fail_on_warning
+      run: uv run --no-sync sphinx-build -W --keep-going -b html docs docs/_build/html
+
   build:
     runs-on: ubuntu-latest
     steps:
